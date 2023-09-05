@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ao-ant-tasks - Ant tasks used in building AO-supported projects.
+Copyright (C) 2023  AO Industries, Inc.
+    support@aoindustries.com
+    7262 Bull Pen Cir
+    Mobile, AL 36695
+
+This file is part of ao-ant-tasks.
+
+ao-ant-tasks is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+ao-ant-tasks is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<jsp:root
+  xmlns:ao="https://oss.aoapps.com/taglib/"
+  xmlns:core="https://semanticcms.com/core/taglib/"
+  xmlns:jsp="http://java.sun.com/JSP/Page"
+  xmlns:section="https://semanticcms.com/section/taglib/"
+  version="2.1"
+>
+  <jsp:directive.page language="java" pageEncoding="UTF-8" />
+  <jsp:directive.page session="false" />
+  <core:page
+    title="@{documented.name}"
+    description="@{documented.description}"
+    datePublished="2023-09-05T02:34:47Z"
+  >
+    <core:child page="changelog.jspx" />
+    <core:child page="apidocs/index.jspx" />
+    <header>
+      <ao:include
+        page="/ao-badges/badges.inc.jspx"
+        arg.projectStatus="alpha"
+        arg.managementStatus="preview"
+        arg.packagingStatus="developmental"
+        arg.javaseVersion="@{documented.javase.version}"
+        arg.semanticVersioning="2.0.0"
+        arg.license="lgpl-3.0"
+        arg.scmUrl="@{project.scm.url}"
+        arg.githubBuildWorkflow="Build"
+        arg.mavenBadge="maven-central"
+        arg.groupId="@{project.groupId}"
+        arg.artifactId="@{documented.artifactId}"
+        arg.sonarQualityGate="true"
+        arg.sonarLinesOfCode="true"
+        arg.sonarReliability="true"
+        arg.sonarSecurity="true"
+        arg.sonarMaintainability="true"
+        arg.sonarCoverage="true"
+      />
+    </header>
+    <p>
+      @{documented.description}
+    </p>
+    <section:nav label="Project Links">
+      <ul>
+        <li><core:link page="index.jspx">Project Home</core:link></li>
+        <li><core:link page="changelog.jspx">Changelog</core:link></li>
+        <li><core:link page="apidocs/index.jspx">API Docs</core:link></li>
+        <li><ao:a href="https://central.sonatype.com/artifact/${ao:encodeURIComponent('@{project.groupId}')}/${ao:encodeURIComponent('@{documented.artifactId}')}">Maven Central Repository</ao:a></li>
+        <li><ao:a href="@{project.scm.url}">GitHub</ao:a></li>
+      </ul>
+    </section:nav>
+    <section:section label="Features">
+      <ul>
+        <li>Fine-grained management of creation and last-modified times within AAR/JAR/WAR files for optimum reproducibility and publishability.</li>
+      </ul>
+    </section:section>
+    <section:section label="Motivation">
+      <p>
+        Our immediate goal is to have efficient <ao:a href="https://www.sitemaps.org/">sitemaps</ao:a> for generated Javadocs.  The sitemaps
+        must provide accurate last-modified timestamps for generated pages.  Our current implementation of
+        <ao:a href="https://maven.apache.org/guides/mini/guide-reproducible-builds.html">reproducible builds</ao:a> is losing last-modified
+        information.
+      </p>
+      <p>
+        More broadly, we desire accurate creation and last-modified times for all project resources deployed in AAR, JAR, and
+        WAR files.  This can have implications for <ao:a href="https://semanticcms.com/core/model/">web content modeling</ao:a>,
+        <core:link book="/servlet-last-modified" page="/index.jspx">web resource caching</core:link>, and the resulting
+        <ao:a href="https://semanticcms.com/core/sitemap/">sitemap generation</ao:a>.
+      </p>
+      <p>
+        As a simple strategy to create reproducible builds, a typical starting point it to
+        <ao:a href="https://maven.apache.org/guides/mini/guide-reproducible-builds.html">declare a timestamp in the <code>\${project.build.outputTimestamp}</code> property</ao:a>.
+        This timestamp is then used for all entries in all resulting AAR/JAR/WAR files.  Standard Maven plugins all use this
+        value, and the <ao:a href="https://maven.apache.org/maven-release/maven-release-plugin/">Maven Release Plugin</ao:a> will update this
+        value automatically during releases.
+      </p>
+      <p>
+        This simple approach, however, introduces an issue when serving web content from the <code>/META-INF/resources</code> directory
+        within JAR files (and a similar issue with the main content served directly from or expanded from the main WAR file).
+        Specifically, in snapshot builds between releases, the JAR/WAR will be recreated with the same timestamp,
+        thus being updated without the main web application and clients being aware of the change.
+      </p>
+      <p>
+        One workaround is to modify this timestamp on each commit.  This concept can be automated through the use of
+        <ao:a href="https://github.com/git-commit-id/git-commit-id-maven-plugin">git-commit-id-maven-plugin</ao:a>, which will use the timestamp
+        of the last commit.  This ensures last modified times are updated, so nothing is cached too aggressively.  However, it
+        now appears that <strong>all</strong> resources are modified on every commit.  This, in turn, can cause web crawlers to be directed
+        toward many pages that have, in fact, not been updated.  When this is Javadoc-generated content, it can cause the
+        crawler to take a while to find actual updated content, or even worse it could distract the crawler from more meaningful
+        changes elsewhere in the site.
+      </p>
+      <p>
+        Leveraging the <ao:a href="https://ant.apache.org/">Apache Ant</ao:a> tasks provided by this project, our
+        <ao:a href="https://www.jenkins.io/">Jenkins</ao:a> builds will now compare the AAR/JAR/WAR files between the last successful build and
+        the current build.  When the entry content is identical to the previous build, the entry will be adjusted to have the
+        same timestamp as the previous build.  Thus, modified times will be carried through from build to build so long as the
+        content has not changed.  If the file is new to a build, it will retain the timestamp resulting from
+        <code>\${project.build.outputTimestamp}</code> as is already done.
+      </p>
+      <p>
+        We also introduce tracking of <ao:a rel="nofollow" href="@{javadoc.link.javase}java.base/java/util/zip/ZipEntry.html#getCreationTime()">entry creation times</ao:a>.
+        The first time an entry is seen, the creation time value is assigned from <code>\${project.build.outputTimestamp}</code>.
+        Subsequent builds will carry-through the original creation time.  When an entry is found to be relocated, it will also
+        retain the original creation time, but will have an updated modified time.
+      </p>
+      <p>
+        Our release builds do not use this optimization.  They use standard reproducible timestamps, typically derived from
+        <code>\${git.commit.time}</code>.  Our releases will also not include any creation timestamps.
+      </p>
+      <p>
+        This is only an optimization to assist crawlers in identifying new content more efficiently.  We only publish content
+        from our SNAPSHOT (or POST-SNAPSHOT) builds.  These snapshots are typically published by Jenkins (which will contain
+        the creation times and adjusted modification times), but may also be published directly by developers (which will not
+        have any creation times and will use standard reproducible timestamps).
+      </p>
+    </section:section>
+    <section:aside label="Evaluated Alternatives">
+      <ul>
+        <li><ao:a href="https://maven.apache.org/guides/mini/guide-reproducible-builds.html">Maven reproducible builds</ao:a></li>
+        <li><ao:a href="https://github.com/git-commit-id/git-commit-id-maven-plugin">git-commit-id-maven-plugin</ao:a></li>
+      </ul>
+    </section:aside>
+  </core:page>
+</jsp:root>

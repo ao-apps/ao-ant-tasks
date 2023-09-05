@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ao-ant-tasks - Ant tasks used in building AO-supported projects.
+Copyright (C) 2023  AO Industries, Inc.
+    support@aoindustries.com
+    7262 Bull Pen Cir
+    Mobile, AL 36695
+
+This file is part of ao-ant-tasks.
+
+ao-ant-tasks is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+ao-ant-tasks is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.aoapps</groupId><artifactId>ao-oss-parent</artifactId><version>1.23.1-SNAPSHOT</version>
+    <relativePath>../parent/pom.xml</relativePath>
+  </parent>
+
+  <groupId>com.aoapps</groupId><artifactId>ao-ant-tasks</artifactId><version>1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <module.name>com.aoapps.ant.tasks</module.name>
+    <javadoc.breadcrumbs><![CDATA[<a target="${javadoc.target}" href="https://oss.aoapps.com/">AO OSS</a>
+/ <a target="${javadoc.target}" href="${project.url}">Ant Tasks</a>]]></javadoc.breadcrumbs>
+  </properties>
+
+  <name>AO Ant Tasks</name>
+  <url>https://oss.aoapps.com/ant-tasks/</url>
+  <description>Ant tasks used in building AO-supported projects.</description>
+  <inceptionYear>2023</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>GNU General Lesser Public License (LGPL) version 3.0</name>
+      <url>https://www.gnu.org/licenses/lgpl-3.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>AO Industries, Inc.</name>
+    <url>https://aoindustries.com/</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>AO Industries, Inc.</name>
+      <email>support@aoindustries.com</email>
+      <url>https://aoindustries.com/</url>
+      <organization>AO Industries, Inc.</organization>
+      <organizationUrl>https://aoindustries.com/</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/ao-apps/ao-ant-tasks.git</connection>
+    <developerConnection>scm:git:git@github.com:ao-apps/ao-ant-tasks.git</developerConnection>
+    <url>https://github.com/ao-apps/ao-ant-tasks</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/ao-apps/ao-ant-tasks/issues</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>https://jenkins.aoindustries.com/job/ao/job/oss/job/ant-tasks/</url>
+  </ciManagement>
+  <!-- Only one allowed in POM:
+  <ciManagement>
+    <system>GitHub Actions</system>
+    <url>https://github.com/ao-apps/ao-ant-tasks/actions</url>
+  </ciManagement>
+  -->
+
+  <repositories>
+    <!-- Repository required here, too, so can find parent -->
+    <repository>
+      <id>sonatype-nexus-snapshots-s01</id>
+      <name>Sonatype Nexus Snapshots S01</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <profiles>
+    <profile>
+      <id>offlineLinks</id><activation><file><exists>src/main/java</exists></file></activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId><artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack.offlineLinks</id><phase>prepare-package</phase><goals><goal>unpack</goal></goals>
+                <configuration>
+                  <artifactItems>
+                    <!-- Direct -->
+                    <artifactItem>
+                      <groupId>org.apache.ant</groupId><artifactId>ant</artifactId><classifier>javadoc</classifier>
+                      <includes>element-list, package-list</includes>
+                      <outputDirectory>${project.build.directory}/offlineLinks/org.apache.ant/ant</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId><artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <offlineLinks combine.children="append">
+                <!-- Direct -->
+                <offlineLink>
+                  <url>https://ant.apache.org/manual/api/</url>
+                  <location>${project.build.directory}/offlineLinks/org.apache.ant/ant</location>
+                </offlineLink>
+              </offlineLinks>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>release</id>
+      <properties>
+        <!--
+          Newer plugins are failing on release builds:
+          error: -\-add-modules ALL-MODULE-PATH can only be used when compiling the unnamed module or when compiling in the context of an automatic module
+
+          This is caused by the project being detected as a modular build, despite the exclusions via Private-Package
+          and the added Automatic-Module-Name manifest entry.
+
+          Specifically excluding module-info.java from javadoc does not solve the issue.
+
+          Could be related:
+          https://issues.apache.org/jira/browse/MJAVADOC-586
+          https://bugs.openjdk.org/browse/JDK-8252531 (we also run javadoc in package phase)
+
+          Workaround by using old version of maven-javadoc-plugin also used by reactor builds.
+        -->
+        <maven-javadoc-plugin.version>${maven-javadoc-plugin.version.reactor}</maven-javadoc-plugin.version>
+        <copy-element-list-to-package-list-before-javadoc.phase>prepare-package</copy-element-list-to-package-list-before-javadoc.phase>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.felix</groupId><artifactId>maven-bundle-plugin</artifactId>
+            <configuration>
+              <instructions>
+                <!--
+                  Releases use "Automatic-Module-Name" instead of "module-info.java"
+                  since has direct dependencies that are not yet modularized.
+                -->
+                <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                <Private-Package>!.</Private-Package>
+              </instructions>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/module-info.class</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Direct -->
+      <dependency>
+        <groupId>org.apache.ant</groupId><artifactId>ant</artifactId><version>1.10.14</version>
+        <exclusions>
+          <exclusion><groupId>org.apache.ant</groupId><artifactId>ant-launcher</artifactId></exclusion>
+        </exclusions>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- Direct -->
+    <dependency>
+      <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
+    </dependency>
+  </dependencies>
+</project>
