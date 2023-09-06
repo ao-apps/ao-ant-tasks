@@ -34,6 +34,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
+    dateModified="2023-09-06T05:31:18Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
@@ -90,7 +91,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         <ao:a href="https://semanticcms.com/core/sitemap/">sitemap generation</ao:a>.
       </p>
       <p>
-        As a simple strategy to create reproducible builds, a typical starting point it to
+        As a simple strategy to create reproducible builds, a typical starting point is to
         <ao:a href="https://maven.apache.org/guides/mini/guide-reproducible-builds.html">declare a timestamp in the <code>\${project.build.outputTimestamp}</code> property</ao:a>.
         This timestamp is then used for all entries in all resulting AAR/JAR/WAR files.  Standard Maven plugins all use this
         value, and the <ao:a href="https://maven.apache.org/maven-release/maven-release-plugin/">Maven Release Plugin</ao:a> will update this

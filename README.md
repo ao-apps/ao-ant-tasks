@@ -39,7 +39,7 @@ WAR files.  This can have implications for [web content modeling](https://github
 [web resource caching](https://github.com/ao-apps/ao-servlet-last-modified), and the resulting
 [sitemap generation](https://github.com/ao-apps/semanticcms-core-sitemap).
 
-As a simple strategy to create reproducible builds, a typical starting point it to
+As a simple strategy to create reproducible builds, a typical starting point is to
 [declare a timestamp in the `${project.build.outputTimestamp}` property](https://maven.apache.org/guides/mini/guide-reproducible-builds.html).
 This timestamp is then used for all entries in all resulting AAR/JAR/WAR files.  Standard Maven plugins all use this
 value, and the [Maven Release Plugin](https://maven.apache.org/maven-release/maven-release-plugin/) will update this
