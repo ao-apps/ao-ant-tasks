@@ -34,7 +34,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-06T05:31:44Z"
+    dateModified="2023-09-06T18:45:17Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
@@ -139,6 +139,16 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         from our SNAPSHOT (or POST-SNAPSHOT) builds.  These snapshots are typically published by Jenkins (which will contain
         the creation times and adjusted modification times), but may also be published directly by developers (which will not
         have any creation times and will use standard reproducible timestamps).
+      </p>
+    </section:section>
+    <section:aside label="Why Ant Tasks Instead of Maven Plugin?">
+      <p>
+        We have implemented this as <ao:a href="https://ant.apache.org/manual/tutorial-writing-tasks.html">Ant tasks</ao:a> instead of a
+        <ao:a href="https://maven.apache.org/guides/plugin/guide-java-plugin-development.html">Maven plugin</ao:a> because the task is used to
+        process its own artifacts.  While we use the tasks via
+        <ao:a href="https://maven.apache.org/plugins/maven-antrun-plugin/">Apache Maven AntRun Plugin</ao:a>, the versatility of
+        <ao:a href="https://ant.apache.org/manual/Tasks/taskdef.html">TaskDef Task</ao:a> allows us to pick-up the artifact of the current build
+        on the classpath.
       </p>
     </section:section>
     <section:aside label="Evaluated Alternatives">
