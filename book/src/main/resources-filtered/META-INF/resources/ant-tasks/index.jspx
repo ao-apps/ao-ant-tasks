@@ -140,7 +140,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         the creation times and adjusted modification times), but may also be published directly by developers (which will not
         have any creation times and will use standard reproducible timestamps).
       </p>
-      <section:aside label="Why Ant Tasks Instead of Maven Plugin?">
+      <section:section label="Why Ant Tasks Instead of Maven Plugin?">
         <p>
           We have implemented this as <ao:a href="https://ant.apache.org/manual/tutorial-writing-tasks.html">Ant tasks</ao:a> instead of a
           <ao:a href="https://maven.apache.org/guides/plugin/guide-java-plugin-development.html">Maven plugin</ao:a> because the task is used to
