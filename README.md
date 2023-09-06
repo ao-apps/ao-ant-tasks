@@ -39,6 +39,7 @@ WAR files.  This can have implications for [web content modeling](https://github
 [web resource caching](https://github.com/ao-apps/ao-servlet-last-modified), and the resulting
 [sitemap generation](https://github.com/ao-apps/semanticcms-core-sitemap).
 
+## Standard Solutions and Related Deficiencies
 As a simple strategy to create reproducible builds, a typical starting point is to
 [declare a timestamp in the `${project.build.outputTimestamp}` property](https://maven.apache.org/guides/mini/guide-reproducible-builds.html).
 This timestamp is then used for all entries in all resulting AAR/JAR/WAR files.  Standard Maven plugins all use this
@@ -58,6 +59,7 @@ toward many pages that have, in fact, not been updated.  When this is Javadoc-ge
 crawler to take a while to find actual updated content, or even worse it could distract the crawler from more meaningful
 changes elsewhere in the site.
 
+## Our Solution
 Leveraging the [Apache Ant](https://ant.apache.org/) tasks provided by this project, our
 [Jenkins](https://www.jenkins.io/) builds will now compare the AAR/JAR/WAR files between the last successful build and
 the current build.  When the entry content is identical to the previous build, the entry will be adjusted to have the

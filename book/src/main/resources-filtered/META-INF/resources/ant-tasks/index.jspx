@@ -34,7 +34,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-06T05:31:18Z"
+    dateModified="2023-09-06T05:31:44Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
@@ -90,6 +90,8 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         <core:link book="/servlet-last-modified" page="/index.jspx">web resource caching</core:link>, and the resulting
         <ao:a href="https://semanticcms.com/core/sitemap/">sitemap generation</ao:a>.
       </p>
+    </section:section>
+    <section:section label="Standard Solutions and Related Deficiencies">
       <p>
         As a simple strategy to create reproducible builds, a typical starting point is to
         <ao:a href="https://maven.apache.org/guides/mini/guide-reproducible-builds.html">declare a timestamp in the <code>\${project.build.outputTimestamp}</code> property</ao:a>.
@@ -112,6 +114,8 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         crawler to take a while to find actual updated content, or even worse it could distract the crawler from more meaningful
         changes elsewhere in the site.
       </p>
+    </section:section>
+    <section:section label="Our Solution">
       <p>
         Leveraging the <ao:a href="https://ant.apache.org/">Apache Ant</ao:a> tasks provided by this project, our
         <ao:a href="https://www.jenkins.io/">Jenkins</ao:a> builds will now compare the AAR/JAR/WAR files between the last successful build and
