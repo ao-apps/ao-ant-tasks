@@ -80,7 +80,7 @@ from our SNAPSHOT (or POST-SNAPSHOT) builds.  These snapshots are typically publ
 the creation times and adjusted modification times), but may also be published directly by developers (which will not
 have any creation times and will use standard reproducible timestamps).
 
-## Why Ant Tasks Instead of Maven Plugin?
+### Why Ant Tasks Instead of Maven Plugin?
 We have implemented this as [Ant tasks](https://ant.apache.org/manual/tutorial-writing-tasks.html) instead of a
 [Maven plugin](https://maven.apache.org/guides/plugin/guide-java-plugin-development.html) because the task is used to
 process its own artifacts.  While we use the tasks via
