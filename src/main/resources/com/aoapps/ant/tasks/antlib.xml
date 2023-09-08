@@ -23,7 +23,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
 -->
 <antlib>
   <taskdef
-    name="persistent-timestamp-merge"
-    classname="com.aoapps.ant.tasks.PersistentTimestampMergeTask"
+    name="zip-timestamp-merge"
+    classname="com.aoapps.ant.tasks.ZipTimestampMergeTask"
   />
 </antlib>

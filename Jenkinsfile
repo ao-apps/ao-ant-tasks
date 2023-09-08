@@ -31,6 +31,9 @@ def upstreamProjects = [
 
   // Direct
   // No Jenkins: <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
+
+  // Test Direct
+  // No Jenkins: <groupId>junit</groupId><artifactId>junit</artifactId>
 ]
 
 /******************************************************************************************

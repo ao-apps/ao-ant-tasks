@@ -122,6 +122,12 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                       <includes>element-list, package-list</includes>
                       <outputDirectory>${project.build.directory}/offlineLinks/org.apache.ant/ant</outputDirectory>
                     </artifactItem>
+                    <!-- Test Direct -->
+                    <artifactItem>
+                      <groupId>junit</groupId><artifactId>junit</artifactId><classifier>javadoc</classifier>
+                      <includes>element-list, package-list</includes>
+                      <outputDirectory>${project.build.directory}/offlineLinks/junit/junit</outputDirectory>
+                    </artifactItem>
                   </artifactItems>
                 </configuration>
               </execution>
@@ -135,6 +141,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                 <offlineLink>
                   <url>https://ant.apache.org/manual/api/</url>
                   <location>${project.build.directory}/offlineLinks/org.apache.ant/ant</location>
+                </offlineLink>
+                <!-- Test Direct -->
+                <offlineLink>
+                  <url>https://junit.org/junit4/javadoc/latest/</url>
+                  <location>${project.build.directory}/offlineLinks/junit/junit</location>
                 </offlineLink>
               </offlineLinks>
             </configuration>
@@ -200,6 +211,18 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
           <exclusion><groupId>org.apache.ant</groupId><artifactId>ant-launcher</artifactId></exclusion>
         </exclusions>
       </dependency>
+      <!-- Test Direct -->
+      <dependency>
+        <groupId>junit</groupId><artifactId>junit</artifactId><version>4.13.2</version>
+      </dependency>
+      <!-- Test Transitive -->
+      <dependency>
+        <groupId>org.hamcrest</groupId><artifactId>hamcrest</artifactId><version>2.2</version>
+      </dependency>
+      <dependency>
+        <!-- Shim for junit 4.13.2 -->
+        <groupId>org.hamcrest</groupId><artifactId>hamcrest-core</artifactId><version>2.2</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -207,6 +230,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <!-- Direct -->
     <dependency>
       <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
+    </dependency>
+    <!-- Test Direct -->
+    <dependency>
+      <groupId>junit</groupId><artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

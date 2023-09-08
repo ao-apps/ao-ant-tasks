@@ -23,19 +23,30 @@
 
 package com.aoapps.ant.tasks;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
+import static org.junit.Assert.assertThrows;
+
+import java.lang.reflect.InvocationTargetException;
+import org.junit.Test;
 
 /**
- * TODO: Document.
- *
- * @author  AO Industries, Inc.
+ * Tests {@link ZipUtils}.
  */
-@SuppressWarnings("CloneableImplementsClone")
-public class PersistentTimestampMergeTask extends Task {
+public class ZipUtilsTest {
 
-  @Override
-  public void execute() throws BuildException {
-    throw new BuildException("TODO: Implement");
+  /**
+   * Tests {@link ZipUtils} cannot be constructed.
+   */
+  @Test
+  @SuppressWarnings("ThrowableResultIgnored")
+  public void testNoConstructor() throws ReflectiveOperationException {
+    var constructor = ZipUtils.class.getDeclaredConstructor();
+    constructor.setAccessible(true);
+    assertThrows("Make no instances.", AssertionError.class, () -> {
+      try {
+        constructor.newInstance();
+      } catch (InvocationTargetException e) {
+        throw e.getCause();
+      }
+    });
   }
 }

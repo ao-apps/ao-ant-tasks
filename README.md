@@ -26,7 +26,7 @@ Ant tasks used in building AO-supported projects.
 * [GitHub](https://github.com/ao-apps/ao-ant-tasks)
 
 ## Features
-* Fine-grained management of creation and last-modified times within AAR/JAR/WAR files for optimum reproducibility and publishability.
+* Fine-grained management of creation and last-modified times within `*.aar`, `*.jar`, `*.war`, and `*.zip` files for optimum reproducibility and publishability.
 
 ## Motivation
 Our immediate goal is to have efficient [sitemaps](https://www.sitemaps.org/) for generated Javadocs.  The sitemaps
@@ -34,15 +34,16 @@ must provide accurate last-modified timestamps for generated pages.  Our current
 [reproducible builds](https://maven.apache.org/guides/mini/guide-reproducible-builds.html) is losing last-modified
 information.
 
-More broadly, we desire accurate creation and last-modified times for all project resources deployed in AAR, JAR, and
-WAR files.  This can have implications for [web content modeling](https://github.com/ao-apps/semanticcms-core-model),
+More broadly, we desire accurate creation and last-modified times for all project resources deployed in `*.aar`,
+`*.jar`, `*.war`, and `*.zip` files.  This can have implications for
+[web content modeling](https://github.com/ao-apps/semanticcms-core-model),
 [web resource caching](https://github.com/ao-apps/ao-servlet-last-modified), and the resulting
 [sitemap generation](https://github.com/ao-apps/semanticcms-core-sitemap).
 
 ## Standard Solutions and Related Deficiencies
 As a simple strategy to create reproducible builds, a typical starting point is to
 [declare a timestamp in the `${project.build.outputTimestamp}` property](https://maven.apache.org/guides/mini/guide-reproducible-builds.html).
-This timestamp is then used for all entries in all resulting AAR/JAR/WAR files.  Standard Maven plugins all use this
+This timestamp is then used for all entries in all resulting AAR/JAR/WAR/ZIP files.  Standard Maven plugins all use this
 value, and the [Maven Release Plugin](https://maven.apache.org/maven-release/maven-release-plugin/) will update this
 value automatically during releases.
 
@@ -61,7 +62,7 @@ changes elsewhere in the site.
 
 ## Our Solution
 Leveraging the [Apache Ant](https://ant.apache.org/) tasks provided by this project, our
-[Jenkins](https://www.jenkins.io/) builds will now compare the AAR/JAR/WAR files between the last successful build and
+[Jenkins](https://www.jenkins.io/) builds will now compare the AAR/JAR/WAR/ZIP files between the last successful build and
 the current build.  When the entry content is identical to the previous build, the entry will be adjusted to have the
 same timestamp as the previous build.  Thus, modified times will be carried through from build to build so long as the
 content has not changed.  If the file is new to a build, it will retain the timestamp resulting from

@@ -34,7 +34,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-06T18:49:33Z"
+    dateModified="2023-09-07T14:55:17Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
@@ -74,7 +74,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     </section:nav>
     <section:section label="Features">
       <ul>
-        <li>Fine-grained management of creation and last-modified times within AAR/JAR/WAR files for optimum reproducibility and publishability.</li>
+        <li>Fine-grained management of creation and last-modified times within <code>*.aar</code>, <code>*.jar</code>, <code>*.war</code>, and <code>*.zip</code> files for optimum reproducibility and publishability.</li>
       </ul>
     </section:section>
     <section:section label="Motivation">
@@ -85,8 +85,9 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         information.
       </p>
       <p>
-        More broadly, we desire accurate creation and last-modified times for all project resources deployed in AAR, JAR, and
-        WAR files.  This can have implications for <ao:a href="https://semanticcms.com/core/model/">web content modeling</ao:a>,
+        More broadly, we desire accurate creation and last-modified times for all project resources deployed in <code>*.aar</code>,
+        <code>*.jar</code>, <code>*.war</code>, and <code>*.zip</code> files.  This can have implications for
+        <ao:a href="https://semanticcms.com/core/model/">web content modeling</ao:a>,
         <core:link book="/servlet-last-modified" page="/index.jspx">web resource caching</core:link>, and the resulting
         <ao:a href="https://semanticcms.com/core/sitemap/">sitemap generation</ao:a>.
       </p>
@@ -95,7 +96,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
       <p>
         As a simple strategy to create reproducible builds, a typical starting point is to
         <ao:a href="https://maven.apache.org/guides/mini/guide-reproducible-builds.html">declare a timestamp in the <code>\${project.build.outputTimestamp}</code> property</ao:a>.
-        This timestamp is then used for all entries in all resulting AAR/JAR/WAR files.  Standard Maven plugins all use this
+        This timestamp is then used for all entries in all resulting AAR/JAR/WAR/ZIP files.  Standard Maven plugins all use this
         value, and the <ao:a href="https://maven.apache.org/maven-release/maven-release-plugin/">Maven Release Plugin</ao:a> will update this
         value automatically during releases.
       </p>
@@ -118,7 +119,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <section:section label="Our Solution">
       <p>
         Leveraging the <ao:a href="https://ant.apache.org/">Apache Ant</ao:a> tasks provided by this project, our
-        <ao:a href="https://www.jenkins.io/">Jenkins</ao:a> builds will now compare the AAR/JAR/WAR files between the last successful build and
+        <ao:a href="https://www.jenkins.io/">Jenkins</ao:a> builds will now compare the AAR/JAR/WAR/ZIP files between the last successful build and
         the current build.  When the entry content is identical to the previous build, the entry will be adjusted to have the
         same timestamp as the previous build.  Thus, modified times will be carried through from build to build so long as the
         content has not changed.  If the file is new to a build, it will retain the timestamp resulting from

@@ -24,4 +24,6 @@ module com.aoapps.ant.tasks {
   exports com.aoapps.ant.tasks;
   // Direct
   requires ant; // <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
+  // Java SE
+  requires java.logging;
 }
