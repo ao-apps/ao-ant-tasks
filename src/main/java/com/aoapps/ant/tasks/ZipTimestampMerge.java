@@ -348,8 +348,8 @@ public final class ZipTimestampMerge {
             lastBuildArtifact,
             buildArtifact,
             // Prepend identifier on log messages
-            (msg) -> debug.accept(identifier + ": " + msg),
-            (msg) -> warn.accept(identifier + ": " + msg)
+            msg -> debug.accept(identifier + ": " + msg),
+            msg -> warn.accept(identifier + ": " + msg)
         );
       } else {
         assert !requireLastBuild : "one-to-one mapping already enforced";
