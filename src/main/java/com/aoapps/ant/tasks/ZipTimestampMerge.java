@@ -189,9 +189,9 @@ public final class ZipTimestampMerge {
   /**
    * Round to 2-second interval for ZIP time compatibility.
    */
-  // TODO: Unused?
-  private static long roundUpDosTime(long millis) {
-    return Math.floorDiv(millis + 1999, 2000) * 2000;
+  private static long roundDownDosTime(long millis) {
+    // TODO: Round up with " + 1999"?
+    return Math.floorDiv(millis, 2000) * 2000;
   }
 
   /**
@@ -476,6 +476,7 @@ public final class ZipTimestampMerge {
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
     // TODO: Round this up?
     long outputTimestampMillis = outputTimestamp.toEpochMilli();
+    long outputTimestampRounded = roundDownDosTime(outputTimestampMillis);
     // Track the specific patches to be performed.  Will remain empty when nothing to change.
     List<Patch> patches = new ArrayList<>();
     debug.accept(() -> "Reading buildArtifact: " + buildArtifact);
@@ -492,11 +493,11 @@ public final class ZipTimestampMerge {
         // Verify time
         long buildEntryTime = getTimeUtc(buildArtifact, buildEntry);
         //debug.accept("buildEntryTime = " + new Date(buildEntryTime));
-        if (buildEntryTime != outputTimestampMillis
+        if (buildEntryTime != outputTimestampRounded
             /*&& zipRoundTime(entryTime) != zipRoundTime(outputTimestampMillis)*/) {
           if (buildReproducible) {
-            throw new ZipException(reproducibleLogPrefix + "Mismatched entry.time: expected " + outputTimestampMillis + " ("
-                + new Date(outputTimestampMillis) + "), got " + buildEntryTime + " (" + new Date(outputTimestampMillis)
+            throw new ZipException(reproducibleLogPrefix + "Mismatched entry.time: expected " + outputTimestampRounded + " ("
+                + new Date(outputTimestampRounded) + "), got " + buildEntryTime + " (" + new Date(buildEntryTime)
                 + ") on ZIP entry: " + buildArtifact + " @ " + buildEntry.getName());
           } else {
             // Patch
