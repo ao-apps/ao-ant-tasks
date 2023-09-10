@@ -116,8 +116,7 @@ public class ZipTimestampMergeTask extends Task {
           buildDirectory,
           msg -> log(msg.get(), LogLevel.DEBUG.getLevel()),
           msg -> log(msg.get(), LogLevel.INFO.getLevel()),
-          msg -> log(msg.get(), LogLevel.WARN.getLevel()),
-          msg -> log(msg.get(), LogLevel.ERR.getLevel())
+          msg -> log(msg.get(), LogLevel.WARN.getLevel())
       );
     } catch (IOException | ParseException e) {
       throw new BuildException(e);

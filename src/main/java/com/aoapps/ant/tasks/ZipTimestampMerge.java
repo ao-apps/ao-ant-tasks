@@ -343,7 +343,7 @@ public final class ZipTimestampMerge {
     return map;
   }
 
-  private static void addTimePatches(Consumer<Supplier<String>> info, List<Patch> patches,
+  private static void addTimePatches(List<Patch> patches,
       SortedMap<Long, CentralDirectoryEntry> centralDirectory, ZipArchiveEntry buildEntry,
       long buildEntryTime, long newTime
   ) throws ZipException, IOException {
@@ -466,9 +466,7 @@ public final class ZipTimestampMerge {
       File lastBuildArtifact,
       File buildArtifact,
       Consumer<Supplier<String>> debug,
-      Consumer<Supplier<String>> info,
-      Consumer<Supplier<String>> warn,
-      Consumer<Supplier<String>> err
+      Consumer<Supplier<String>> info
   ) throws IOException {
     info.accept(() -> "Merging timestamps from " + lastBuildArtifact + " into " + buildArtifact);
     // Validate
@@ -499,7 +497,7 @@ public final class ZipTimestampMerge {
                 + ") on ZIP entry: " + buildArtifact + " @ " + buildEntry.getName());
           } else {
             // Patch
-            addTimePatches(info, patches, centralDirectory, buildEntry, buildEntryTime, outputTimestampMillis);
+            addTimePatches(patches, centralDirectory, buildEntry, buildEntryTime, outputTimestampMillis);
           }
         }
         // Fail if has extra-based last modified time, since we aren't patching that
@@ -582,7 +580,7 @@ public final class ZipTimestampMerge {
               }
               debug.accept(() -> "matches: " + matches);
               if (matches) {
-                addTimePatches(info, patches, centralDirectory, buildEntry, buildEntryTime, lastBuildEntryTime);
+                addTimePatches(patches, centralDirectory, buildEntry, buildEntryTime, lastBuildEntryTime);
               }
             } else {
               debug.accept(() -> "entry already at last build timestamp: " + buildEntry);
@@ -635,9 +633,7 @@ public final class ZipTimestampMerge {
         lastBuildArtifact,
         buildArtifact,
         logger::fine,
-        logger::info,
-        logger::warning,
-        logger::severe
+        logger::info
     );
   }
 
@@ -743,8 +739,7 @@ public final class ZipTimestampMerge {
       File buildDirectory,
       Consumer<Supplier<String>> debug,
       Consumer<Supplier<String>> info,
-      Consumer<Supplier<String>> warn,
-      Consumer<Supplier<String>> err
+      Consumer<Supplier<String>> warn
   ) throws IOException, ParseException {
     // Validate
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
@@ -799,9 +794,7 @@ public final class ZipTimestampMerge {
             buildArtifact,
             // Prepend identifier on log messages
             msg -> debug.accept(() -> identifier + ": " + msg.get()),
-            msg -> info.accept(() -> identifier + ": " + msg.get()),
-            msg -> warn.accept(() -> identifier + ": " + msg.get()),
-            msg -> err.accept(() -> identifier + ": " + msg.get())
+            msg -> info.accept(() -> identifier + ": " + msg.get())
         );
       } else {
         assert !requireLastBuild : "one-to-one mapping already enforced";
@@ -856,8 +849,7 @@ public final class ZipTimestampMerge {
         buildDirectory,
         logger::fine,
         logger::info,
-        logger::warning,
-        logger::severe
+        logger::warning
     );
   }
 }
