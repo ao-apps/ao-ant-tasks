@@ -542,7 +542,15 @@ public final class ZipTimestampMerge {
             debug.accept(() -> "lastBuildEntry: " + lastBuildEntry);
             // If timestamps already match, there would be nothing to even patch
             long buildEntryTime = getTimeUtc(buildArtifact, buildEntry);
+            if (buildEntryTime > currentTimeRounded) {
+              warn.accept(() -> "buildEntry(" + buildEntry + ".time (" + new Date(buildEntryTime)
+                  + " in future");
+            }
             long lastBuildEntryTime = getTimeUtc(lastBuildArtifact, lastBuildEntry);
+            if (lastBuildEntryTime > currentTimeRounded) {
+              warn.accept(() -> "lastBuildEntry(" + lastBuildEntry + ".time (" + new Date(lastBuildEntryTime)
+                  + " in future");
+            }
             boolean updated;
             if (buildEntry.getSize() != lastBuildEntry.getSize()) {
               updated = true;
@@ -584,14 +592,10 @@ public final class ZipTimestampMerge {
             long expectedTime;
             if (updated) {
               if (lastBuildEntryTime < buildEntryTime) {
-                // last build is before build, use last build time
-                expectedTime = lastBuildEntryTime;
+                // last build is before build, use build time
+                expectedTime = buildEntryTime;
               } else {
                 // use current time to avoid going back in time
-                if (lastBuildEntryTime > currentTimeRounded) {
-                  warn.accept(() -> "lastBuildEntry(" + lastBuildEntry + ".time (" + new Date(lastBuildEntryTime)
-                      + " in future, using current time (" + new Date(currentTimeRounded) + ')');
-                }
                 expectedTime = currentTimeRounded;
               }
             } else {
