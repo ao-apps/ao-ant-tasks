@@ -347,7 +347,6 @@ public final class ZipTimestampMerge {
       SortedMap<Long, CentralDirectoryEntry> centralDirectory, ZipArchiveEntry buildEntry,
       long buildEntryTime, long newTime
   ) throws ZipException, IOException {
-    // TODO: Round here before checking?
     if (buildEntryTime == newTime) {
       throw new IllegalArgumentException("Times equal, nothing to patch for " + buildEntry);
     }
@@ -474,7 +473,6 @@ public final class ZipTimestampMerge {
     info.accept(() -> "Merging timestamps from " + lastBuildArtifact + " into " + buildArtifact);
     // Validate
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
-    // TODO: Round this up?
     long outputTimestampMillis = outputTimestamp.toEpochMilli();
     long outputTimestampRounded = roundDownDosTime(outputTimestampMillis);
     // Track the specific patches to be performed.  Will remain empty when nothing to change.
