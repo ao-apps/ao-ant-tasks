@@ -461,18 +461,21 @@ public final class ZipTimestampMerge {
    * with provided logging.
    */
   private static void mergeFile(
+      long currentTime,
       Instant outputTimestamp,
       boolean buildReproducible,
       File lastBuildArtifact,
       File buildArtifact,
       Consumer<Supplier<String>> debug,
-      Consumer<Supplier<String>> info
+      Consumer<Supplier<String>> info,
+      Consumer<Supplier<String>> warn
   ) throws IOException {
     info.accept(() -> "Merging timestamps from " + lastBuildArtifact + " into " + buildArtifact);
     // Validate
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
     long outputTimestampMillis = outputTimestamp.toEpochMilli();
     long outputTimestampRounded = roundDownDosTime(outputTimestampMillis);
+    long currentTimeRounded = roundDownDosTime(currentTime);
     // Track the specific patches to be performed.  Will remain empty when nothing to change.
     List<Patch> patches = new ArrayList<>();
     debug.accept(() -> "Reading buildArtifact: " + buildArtifact);
@@ -540,50 +543,65 @@ public final class ZipTimestampMerge {
             // If timestamps already match, there would be nothing to even patch
             long buildEntryTime = getTimeUtc(buildArtifact, buildEntry);
             long lastBuildEntryTime = getTimeUtc(lastBuildArtifact, lastBuildEntry);
-            if (buildEntryTime != lastBuildEntryTime) {
-              boolean matches;
-              if (buildEntry.getSize() != lastBuildEntry.getSize()) {
-                matches = false;
-              } else if (buildEntry.isDirectory()) {
-                assert buildEntry.getSize() == 0;
-                // A directory is modified only when an immediate child entry is added or removed
-                SortedSet<String> buildChildren = getDirectChildren(debug, buildZipFile, buildEntry);
-                SortedSet<String> lastBuildChildren = getDirectChildren(debug, lastBuildZipFile, lastBuildEntry);
-                matches = buildChildren.equals(lastBuildChildren);
-                if (!matches) {
-                  info.accept(() -> {
-                    StringBuilder sb = new StringBuilder(entryName + ": Directory is modified:");
-                    for (String buildChild : buildChildren) {
-                      if (!lastBuildChildren.contains(buildChild)) {
-                        sb.append(System.lineSeparator()).append("  Added: ").append(buildChild);
-                      }
+            boolean updated;
+            if (buildEntry.getSize() != lastBuildEntry.getSize()) {
+              updated = true;
+            } else if (buildEntry.isDirectory()) {
+              assert buildEntry.getSize() == 0;
+              // A directory is modified only when an immediate child entry is added or removed
+              SortedSet<String> buildChildren = getDirectChildren(debug, buildZipFile, buildEntry);
+              SortedSet<String> lastBuildChildren = getDirectChildren(debug, lastBuildZipFile, lastBuildEntry);
+              updated = !buildChildren.equals(lastBuildChildren);
+              if (updated) {
+                info.accept(() -> {
+                  StringBuilder sb = new StringBuilder(entryName + ": Directory is modified:");
+                  for (String buildChild : buildChildren) {
+                    if (!lastBuildChildren.contains(buildChild)) {
+                      sb.append(System.lineSeparator()).append("  Added: ").append(buildChild);
                     }
-                    for (String lastBuildChild : lastBuildChildren) {
-                      if (!buildChildren.contains(lastBuildChild)) {
-                        sb.append(System.lineSeparator()).append("  Removed: ").append(lastBuildChild);
-                      }
+                  }
+                  for (String lastBuildChild : lastBuildChildren) {
+                    if (!buildChildren.contains(lastBuildChild)) {
+                      sb.append(System.lineSeparator()).append("  Removed: ").append(lastBuildChild);
                     }
-                    return sb.toString();
-                  });
-                }
-              } else {
-                int buildMethod = buildEntry.getMethod();
-                int lastBuildMethod = lastBuildEntry.getMethod();
-                boolean readRaw = buildMethod != -1 && buildMethod == lastBuildMethod;
-                try (
-                    InputStream buildInput = readRaw ? buildZipFile.getRawInputStream(buildEntry)
-                        : buildZipFile.getInputStream(buildEntry);
-                    InputStream lastBuildInput = readRaw ? lastBuildZipFile.getRawInputStream(lastBuildEntry)
-                        : lastBuildZipFile.getInputStream(lastBuildEntry)) {
-                  matches = streamsMatch(buildInput, lastBuildInput, buff1, buff2);
-                }
-              }
-              debug.accept(() -> "matches: " + matches);
-              if (matches) {
-                addTimePatches(patches, centralDirectory, buildEntry, buildEntryTime, lastBuildEntryTime);
+                  }
+                  return sb.toString();
+                });
               }
             } else {
-              debug.accept(() -> "entry already at last build timestamp: " + buildEntry);
+              int buildMethod = buildEntry.getMethod();
+              int lastBuildMethod = lastBuildEntry.getMethod();
+              boolean readRaw = buildMethod != -1 && buildMethod == lastBuildMethod;
+              try (
+                  InputStream buildInput = readRaw ? buildZipFile.getRawInputStream(buildEntry)
+                      : buildZipFile.getInputStream(buildEntry);
+                  InputStream lastBuildInput = readRaw ? lastBuildZipFile.getRawInputStream(lastBuildEntry)
+                      : lastBuildZipFile.getInputStream(lastBuildEntry)) {
+                updated = !streamsMatch(buildInput, lastBuildInput, buff1, buff2);
+              }
+            }
+            debug.accept(() -> "updated: " + updated);
+            long expectedTime;
+            if (updated) {
+              if (lastBuildEntryTime < buildEntryTime) {
+                // last build is before build, use last build time
+                expectedTime = lastBuildEntryTime;
+              } else {
+                // use current time to avoid going back in time
+                if (lastBuildEntryTime > currentTimeRounded) {
+                  warn.accept(() -> "lastBuildEntry(" + lastBuildEntry + ".time (" + new Date(lastBuildEntryTime)
+                      + " in future, using current time (" + new Date(currentTimeRounded) + ')');
+                }
+                expectedTime = currentTimeRounded;
+              }
+            } else {
+              // Not updated, keep time from last build even if in the future
+              expectedTime = lastBuildEntryTime;
+            }
+            if (buildEntryTime != expectedTime) {
+              addTimePatches(patches, centralDirectory, buildEntry, buildEntryTime, expectedTime);
+            } else {
+              debug.accept(() -> "entry already at expected timestamp: " + buildEntry);
             }
           } else {
             info.accept(() -> "New entry not found in last build: " + buildEntry);
@@ -628,12 +646,14 @@ public final class ZipTimestampMerge {
       File buildArtifact
   ) throws IOException, ParseException {
     ZipTimestampMerge.mergeFile(
+        System.currentTimeMillis(),
         outputTimestamp,
         buildReproducible,
         lastBuildArtifact,
         buildArtifact,
         logger::fine,
-        logger::info
+        logger::info,
+        logger::warning
     );
   }
 
@@ -743,6 +763,7 @@ public final class ZipTimestampMerge {
   ) throws IOException, ParseException {
     // Validate
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
+    long currentTime = System.currentTimeMillis();
     // Find artifacts
     Map<Identifier, File> lastBuildArtifacts = findArtifacts("lastBuildDirectory", lastBuildDirectory, requireLastBuild);
     Map<Identifier, File> buildArtifacts = findArtifacts("buildDirectory", buildDirectory, true);
@@ -788,13 +809,15 @@ public final class ZipTimestampMerge {
       if (lastBuildArtifact != null) {
         debug.accept(() -> identifier + ": lastBuildArtifact: " + lastBuildArtifact);
         mergeFile(
+            currentTime,
             outputTimestamp,
             buildReproducible,
             lastBuildArtifact,
             buildArtifact,
             // Prepend identifier on log messages
             msg -> debug.accept(() -> identifier + ": " + msg.get()),
-            msg -> info.accept(() -> identifier + ": " + msg.get())
+            msg -> info.accept(() -> identifier + ": " + msg.get()),
+            msg -> warn.accept(() -> identifier + ": " + msg.get())
         );
       } else {
         assert !requireLastBuild : "one-to-one mapping already enforced";
