@@ -34,7 +34,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-07T14:55:17Z"
+    dateModified="2023-09-09T23:35:05Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
@@ -74,7 +74,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     </section:nav>
     <section:section label="Features">
       <ul>
-        <li>Fine-grained management of creation and last-modified times within <code>*.aar</code>, <code>*.jar</code>, <code>*.war</code>, and <code>*.zip</code> files for optimum reproducibility and publishability.</li>
+        <li>Fine-grained management of last-modified times within <code>*.aar</code>, <code>*.jar</code>, <code>*.war</code>, and <code>*.zip</code> files for optimum reproducibility and publishability.</li>
       </ul>
     </section:section>
     <section:section label="Motivation">
@@ -85,8 +85,8 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         information.
       </p>
       <p>
-        More broadly, we desire accurate creation and last-modified times for all project resources deployed in <code>*.aar</code>,
-        <code>*.jar</code>, <code>*.war</code>, and <code>*.zip</code> files.  This can have implications for
+        More broadly, we desire accurate last-modified times for all project resources deployed in <code>*.aar</code>, <code>*.jar</code>, <code>*.war</code>,
+        and <code>*.zip</code> files.  This can have implications for
         <ao:a href="https://semanticcms.com/core/model/">web content modeling</ao:a>,
         <core:link book="/servlet-last-modified" page="/index.jspx">web resource caching</core:link>, and the resulting
         <ao:a href="https://semanticcms.com/core/sitemap/">sitemap generation</ao:a>.
@@ -119,27 +119,21 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <section:section label="Our Solution">
       <p>
         Leveraging the <ao:a href="https://ant.apache.org/">Apache Ant</ao:a> tasks provided by this project, our
-        <ao:a href="https://www.jenkins.io/">Jenkins</ao:a> builds will now compare the AAR/JAR/WAR/ZIP files between the last successful build and
-        the current build.  When the entry content is identical to the previous build, the entry will be adjusted to have the
-        same timestamp as the previous build.  Thus, modified times will be carried through from build to build so long as the
-        content has not changed.  If the file is new to a build, it will retain the timestamp resulting from
+        <ao:a href="https://www.jenkins.io/">Jenkins</ao:a> builds will now compare the AAR/JAR/WAR/ZIP files between the last successful build
+        and the current build.  When the entry content is identical to the previous build, the entry will be modified in-place
+        to have the same timestamp as the previous build.  Thus, modified times will be carried through from build to build so
+        long as the content has not changed.  If the entry is new to a build, it will retain the timestamp resulting from
         <code>\${project.build.outputTimestamp}</code> as is already done.
       </p>
       <p>
-        We also introduce tracking of <ao:a rel="nofollow" href="@{javadoc.link.javase}java.base/java/util/zip/ZipEntry.html#getCreationTime()">entry creation times</ao:a>.
-        The first time an entry is seen, the creation time value is assigned from <code>\${project.build.outputTimestamp}</code>.
-        Subsequent builds will carry-through the original creation time.  When an entry is found to be relocated, it will also
-        retain the original creation time, but will have an updated modified time.
-      </p>
-      <p>
         Our release builds do not use this optimization.  They use standard reproducible timestamps, typically derived from
-        <code>\${git.commit.time}</code>.  Our releases will also not include any creation timestamps.
+        <code>\${git.commit.time}</code>.
       </p>
       <p>
         This is only an optimization to assist crawlers in identifying new content more efficiently.  We only publish content
         from our SNAPSHOT (or POST-SNAPSHOT) builds.  These snapshots are typically published by Jenkins (which will contain
-        the creation times and adjusted modification times), but may also be published directly by developers (which will not
-        have any creation times and will use standard reproducible timestamps).
+        the patched modification times), but may also be published directly by developers (which will use standard reproducible
+        timestamps).
       </p>
       <section:section label="Why Ant Tasks Instead of Maven Plugin?">
         <p>

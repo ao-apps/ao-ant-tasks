@@ -26,27 +26,48 @@ package com.aoapps.ant.tasks;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
+import org.apache.commons.compress.archivers.zip.X5455_ExtendedTimestamp;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipExtraField;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.archivers.zip.ZipLong;
+import org.apache.commons.compress.archivers.zip.ZipUtil;
+import org.apache.commons.compress.utils.ByteUtils;
 
 /**
  * Standalone implementation of ZIP-file timestamp merging.
  * <p>
  * This does not have any direct Ant dependencies.
  * If only using this class, it is permissible to exclude the ant dependencies.
+ * </p>
+ * <p>
+ * See <a href="https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html">The structure of a PKZip file</a>.
  * </p>
  *
  * @author  AO Industries, Inc.
@@ -59,6 +80,45 @@ public final class ZipTimestampMerge {
   }
 
   private static final Logger logger = Logger.getLogger(ZipTimestampMerge.class.getName());
+
+  /**
+   * The starting size of byte[] buffers.
+   */
+  private static final int BUFFER_SIZE = 4096;
+
+  private static final int LOCAL_TIME_OFFSET = 0x0a;
+
+  private static final byte[] CENTRAL_HEADER_SIGNATURE = {0x50, 0x4b, 0x01, 0x02};
+  private static final byte[] END_CENTRAL_HEADER_SIGNATURE = {0x50, 0x4b, 0x05, 0x06};
+  private static final int CENTRAL_HEADER_LEN = 0x2e - CENTRAL_HEADER_SIGNATURE.length;
+  private static final int CENTRAL_HEADER_TIME_OFFSET = 0x0c - CENTRAL_HEADER_SIGNATURE.length;
+  private static final int CENTRAL_HEADER_FILENAME_LEN_OFFSET = 0x1c - CENTRAL_HEADER_SIGNATURE.length;
+  private static final int CENTRAL_HEADER_EXTRA_LEN_OFFSET = 0x1e - CENTRAL_HEADER_SIGNATURE.length;
+  private static final int CENTRAL_HEADER_LOCAL_HEADER_OFFSET = 0x2a - CENTRAL_HEADER_SIGNATURE.length;
+
+  static {
+    assert CENTRAL_HEADER_SIGNATURE.length == END_CENTRAL_HEADER_SIGNATURE.length;
+  }
+
+  /**
+   * Reads a ZIP "word", which is four bytes little-endian.
+   */
+  private static long getZipWord(byte[] buff, int offset) {
+    long value = ByteUtils.fromLittleEndian(buff, offset, 4);
+    assert value > 0L;
+    assert value < 0x100000000L;
+    return value;
+  }
+
+  /**
+   * Reads a ZIP "short", which is two bytes little-endian.
+   */
+  private static int getZipShort(byte[] buff, int offset) {
+    long value = ByteUtils.fromLittleEndian(buff, offset, 2);
+    assert value > 0L;
+    assert value < 0x10000L;
+    return (int) value;
+  }
 
   private static final FilenameFilter FILTER = (dir, name) -> {
     String lowerName = name.toLowerCase(Locale.ROOT);
@@ -109,56 +169,434 @@ public final class ZipTimestampMerge {
   }
 
   /**
+   * Gets the time in UTC.
+   *
+   * @throws ZipException if no time set ({@link ZipArchiveEntry#getTime()} returned -1).
+   */
+  // Note: Based on ao-lang:ZipUtils.getTimeUtc
+  private static long getTimeUtc(File artifact, ZipArchiveEntry entry) throws ZipException {
+    long time = entry.getTime();
+    if (time == -1) {
+      throw new ZipException("Entry has no timestamp, cannot patch: " + entry.getName() + " in " + artifact);
+    }
+    long offset = time + TimeZone.getDefault().getOffset(time);
+    if (offset == -1) {
+      throw new ZipException("Time is -1 after offset: " + artifact + "!" + entry.getName());
+    }
+    return offset;
+  }
+
+  /**
    * Round to 2-second interval for ZIP time compatibility.
    */
-  private static long zipRoundTime(long mills) {
-    return Math.floorDiv(mills, 2000) * 2000;
+  // TODO: Unused?
+  private static long roundUpDosTime(long millis) {
+    return Math.floorDiv(millis + 1999, 2000) * 2000;
+  }
+
+  /**
+   * Checks if two streams are byte-for-byte compatible.
+   * Simply checks one byte at a time, caller should buffer as-needed.
+   */
+  private static boolean streamsMatch(InputStream in1, InputStream in2, byte[] buff1, byte[] buff2) throws IOException {
+    if (buff1.length != buff2.length) {
+      throw new IllegalArgumentException("Mismatched buffer sizes");
+    }
+    while (true) {
+      int bytes1 = in1.read(buff1);
+      if (bytes1 == -1) {
+        return in2.read() == -1;
+      }
+      int bytes2 = in2.readNBytes(buff2, 0, bytes1);
+      if (bytes1 != bytes2) {
+        assert in2.read() == -1 : "in2 is at end of file";
+        return false;
+      }
+      if (!Arrays.equals(buff1, 0, bytes1, buff2, 0, bytes1)) {
+        return false;
+      }
+    }
+  }
+
+  /**
+   * One patch that has been identified to be applied after comparison.
+   */
+  private static final class Patch {
+
+    private final long offset;
+    private final byte[] expected;
+    private final byte[] replacement;
+
+    private Patch(long offset, byte[] expected, byte[] replacement) {
+      if (expected.length != replacement.length) {
+        throw new IllegalArgumentException("Mismatched lengths");
+      }
+      if (Arrays.equals(expected, replacement)) {
+        throw new IllegalArgumentException("replacement equals expected, no patch needed");
+      }
+      this.offset = offset;
+      this.expected = expected;
+      this.replacement = replacement;
+    }
+  }
+
+  /**
+   * Gets the bytes representing time and date in DOS format in UTC time zone.
+   */
+  // Note: Based on ao-lang:ZipUtils.setTimeUtc
+  private static byte[] getDosTimeDate(long time) throws ZipException {
+    long offset = time - TimeZone.getDefault().getOffset(time);
+    if (offset == -1) {
+      throw new ZipException("Time is -1 after offset");
+    }
+    byte[] dosTimeDate = new byte[4];
+    ZipUtil.toDosTime(offset, dosTimeDate, 0);
+    return dosTimeDate;
+  }
+
+  private static final Field zipFileCentralDirectoryStartOffset;
+
+  static {
+    try {
+      // TODO: Accessing centralDirectoryStartOffset via reflection is a hack to avoid writing our own parser
+      Field centralDirectoryStartOffset = ZipFile.class.getDeclaredField("centralDirectoryStartOffset");
+      centralDirectoryStartOffset.setAccessible(true);
+      zipFileCentralDirectoryStartOffset = centralDirectoryStartOffset;
+    } catch (NoSuchFieldException e) {
+      throw new ExceptionInInitializerError(e);
+    }
+  }
+
+  private static long getCentralDirectoryStartOffset(ZipFile zipFile) {
+    try {
+      return zipFileCentralDirectoryStartOffset.getLong(zipFile);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static final class CentralDirectoryEntry {
+
+    private final long position;
+    private final byte[] rawFilename;
+
+    private CentralDirectoryEntry(long position, byte[] rawFilename) {
+      this.position = position;
+      this.rawFilename = rawFilename;
+    }
+  }
+
+  /**
+   * Reads the central directory beginning at the given offset, indexing each entry by local header offset.
+   */
+  private static SortedMap<Long, CentralDirectoryEntry> readCentralDirectory(Consumer<Supplier<String>> debug,
+      File buildArtifact, ZipFile buildZipFile) throws IOException {
+    long centralDirectoryStartOffset = getCentralDirectoryStartOffset(buildZipFile);
+    debug.accept(() -> "centralDirectoryStartOffset = 0x" + Long.toHexString(centralDirectoryStartOffset));
+    SortedMap<Long, CentralDirectoryEntry> map = new TreeMap<>();
+    debug.accept(() -> "Opening buildArtifactRaf: " + buildArtifact);
+    try (RandomAccessFile buildArtifactRaf = new RandomAccessFile(buildArtifact, "r")) {
+      buildArtifactRaf.seek(centralDirectoryStartOffset);
+      byte[] signature = new byte[CENTRAL_HEADER_SIGNATURE.length];
+      byte[] centralDirectoryHeader = new byte[CENTRAL_HEADER_LEN];
+      buildArtifactRaf.readFully(signature);
+      debug.accept(() -> "signature @ 0x" + Long.toHexString(centralDirectoryStartOffset) + " is " + bytesToHex(signature));
+      while (Arrays.equals(signature, CENTRAL_HEADER_SIGNATURE)) {
+        long centralDirectoryPosition = buildArtifactRaf.getFilePointer();
+        debug.accept(() -> "centralDirectoryPosition = 0x" + Long.toHexString(centralDirectoryPosition));
+        buildArtifactRaf.readFully(centralDirectoryHeader);
+        // Read raw filename
+        int filenameLen = getZipShort(centralDirectoryHeader, CENTRAL_HEADER_FILENAME_LEN_OFFSET);
+        debug.accept(() -> "filenameLen = " + filenameLen);
+        if (filenameLen < 0) {
+          throw new ZipException("Invalid filename length: " + filenameLen);
+        }
+        byte[] rawFilename = new byte[filenameLen];
+        buildArtifactRaf.readFully(rawFilename);
+        int extraLen = getZipShort(centralDirectoryHeader, CENTRAL_HEADER_EXTRA_LEN_OFFSET);
+        debug.accept(() -> "extraLen = " + extraLen);
+        if (extraLen < 0) {
+          throw new ZipException("Invalid extra length: " + extraLen);
+        }
+        byte[] rawExtra = new byte[extraLen];
+        buildArtifactRaf.readFully(rawExtra);
+        // Look for relative offset match
+        long relativeOffset = getZipWord(centralDirectoryHeader, CENTRAL_HEADER_LOCAL_HEADER_OFFSET);
+        debug.accept(() -> "relativeOffset = 0x" + Long.toHexString(relativeOffset));
+        long localHeaderOffset = relativeOffset + buildZipFile.getFirstLocalFileHeaderOffset();
+        debug.accept(() -> "localHeaderOffset = 0x" + Long.toHexString(localHeaderOffset));
+        CentralDirectoryEntry newEntry = new CentralDirectoryEntry(centralDirectoryPosition, rawFilename);
+        CentralDirectoryEntry existing = map.put(localHeaderOffset, newEntry);
+        if (existing != null) {
+          throw new ZipException("Duplicate central directory entries point to same local header (0x"
+              + Long.toHexString(localHeaderOffset) + "): 0x" + Long.toHexString(existing.position) + " and 0x"
+              + Long.toHexString(newEntry.position));
+        }
+        long sigPos = buildArtifactRaf.getFilePointer();
+        buildArtifactRaf.readFully(signature);
+        debug.accept(() -> "signature @ 0x" + Long.toHexString(sigPos) + " is " + bytesToHex(signature));
+      }
+      if (!Arrays.equals(signature, END_CENTRAL_HEADER_SIGNATURE)) {
+        throw new ZipException("sig is not END_SIG: " + bytesToHex(signature));
+      }
+    }
+    return map;
+  }
+
+  private static void addTimePatches(Consumer<Supplier<String>> info, List<Patch> patches,
+      SortedMap<Long, CentralDirectoryEntry> centralDirectory, ZipArchiveEntry buildEntry,
+      long buildEntryTime, long newTime
+  ) throws ZipException, IOException {
+    // TODO: Round here before checking?
+    if (buildEntryTime == newTime) {
+      throw new IllegalArgumentException("Times equal, nothing to patch for " + buildEntry);
+    }
+    byte[] expected = getDosTimeDate(buildEntryTime);
+    byte[] replacement = getDosTimeDate(newTime);
+    assert expected.length == replacement.length;
+    if (Arrays.equals(expected, replacement)) {
+      throw new ZipException("DOS times same, rounding? expected = " + bytesToHex(expected));
+    }
+    // Local header
+    long localHeaderOffset = buildEntry.getLocalHeaderOffset();
+    patches.add(new Patch(localHeaderOffset + LOCAL_TIME_OFFSET, expected, replacement));
+    // Central Directory header
+    CentralDirectoryEntry centralDirectoryEntry = centralDirectory.get(localHeaderOffset);
+    if (centralDirectoryEntry == null) {
+      throw new ZipException("No central directory entry found for local header: 0x"
+          + Long.toHexString(localHeaderOffset));
+    }
+    // raw filename must match
+    byte[] expectedRawName = buildEntry.getRawName();
+    if (!Arrays.equals(centralDirectoryEntry.rawFilename, expectedRawName)) {
+      throw new ZipException("raw filename mismatch: " + bytesToHex(centralDirectoryEntry.rawFilename) + " != "
+          + bytesToHex(expectedRawName));
+    }
+    patches.add(new Patch(centralDirectoryEntry.position + CENTRAL_HEADER_TIME_OFFSET, expected, replacement));
+  }
+
+  // See https://stackoverflow.com/a/9855338
+  // Java 17: Use HexFormat
+  private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+
+  private static String bytesToHex(byte[] bytes, int len) {
+    char[] hexChars = new char[len * 2];
+    for (int j = 0; j < len; j++) {
+      int v = bytes[j] & 0xFF;
+      hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+      hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+    }
+    return new String(hexChars);
+  }
+
+  private static String bytesToHex(byte[] bytes) {
+    return bytesToHex(bytes, bytes.length);
+  }
+
+  private static Date decodeDosTime(byte[] bytes) {
+    return ZipUtil.fromDosTime(new ZipLong(ZipLong.getValue(bytes)));
+  }
+
+  /**
+   * Applies the given set of patches to a file.
+   */
+  private static void applyPatches(String logPrefix, Consumer<Supplier<String>> debug, Consumer<Supplier<String>> info,
+      List<Patch> patches, File file, int totalEntries) throws IOException {
+    debug.accept(() -> logPrefix + file);
+    info.accept(() -> logPrefix + "Patching " + (patches.size() / 2) + " of " + totalEntries
+        + (totalEntries == 1 ? " timestamp" : " timestamps"));
+    try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+      byte[] buff = null;
+      for (Patch patch : patches) {
+        long offset = patch.offset;
+        int len = patch.expected.length;
+        debug.accept(() -> logPrefix + "Patching "
+            + bytesToHex(patch.expected, len) + " (" + decodeDosTime(patch.expected) + ") to "
+            + bytesToHex(patch.replacement, len) + " (" + decodeDosTime(patch.replacement) + ") at "
+            + offset);
+        raf.seek(offset);
+        if (buff == null || len > buff.length) {
+          buff = new byte[Math.min(len, BUFFER_SIZE)];
+        }
+        raf.readFully(buff, 0, len);
+        if (!Arrays.equals(buff, 0, len, patch.expected, 0, len)) {
+          throw new IOException("Unexpected data in patch position: offset = " + patch.offset
+              + ", expected = " + bytesToHex(patch.expected, len) + " (" + decodeDosTime(patch.expected)
+              + "), actual = " + bytesToHex(buff, len) + " (" + decodeDosTime(buff) + ')');
+        }
+        raf.seek(offset);
+        raf.write(patch.replacement);
+      }
+    }
+  }
+
+  /**
+   * Gets the direct children names of the given entry, if any.
+   */
+  private static SortedSet<String> getDirectChildren(Consumer<Supplier<String>> debug, ZipFile zipFile,
+      ZipArchiveEntry directory) throws ZipException {
+    String directoryName = directory.getName();
+    if (!directoryName.endsWith("/")) {
+      throw new IllegalArgumentException("directory does not end in \"/\": " + directoryName);
+    }
+    SortedSet<String> children = new TreeSet<>();
+    Enumeration<ZipArchiveEntry> entries = zipFile.getEntriesInPhysicalOrder();
+    while (entries.hasMoreElements()) {
+      ZipArchiveEntry entry = entries.nextElement();
+      String name = entry.getName();
+      if (name.startsWith(directoryName)) {
+        String childName = name.substring(directoryName.length());
+        if (!childName.isEmpty() && childName.indexOf('/') == -1) {
+          if (!children.add(childName)) {
+            throw new ZipException("Duplicate child name of " + directoryName + ": " + childName);
+          }
+        }
+      }
+    }
+    debug.accept(() -> "Children of " + directory + ": " + children);
+    return children;
   }
 
   /**
    * Implementation of {@link #mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)}
    * with provided logging.
    */
-  static void mergeFile(
+  private static void mergeFile(
       Instant outputTimestamp,
       boolean buildReproducible,
       File lastBuildArtifact,
       File buildArtifact,
-      Consumer<? super String> debug,
-      Consumer<? super String> warn
+      Consumer<Supplier<String>> debug,
+      Consumer<Supplier<String>> info,
+      Consumer<Supplier<String>> warn,
+      Consumer<Supplier<String>> err
   ) throws IOException {
+    info.accept(() -> "Merging timestamps from " + lastBuildArtifact + " into " + buildArtifact);
     // Validate
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
+    // TODO: Round this up?
     long outputTimestampMillis = outputTimestamp.toEpochMilli();
-    debug.accept("Opening buildArtifact: " + buildArtifact);
+    // Track the specific patches to be performed.  Will remain empty when nothing to change.
+    List<Patch> patches = new ArrayList<>();
+    debug.accept(() -> "Reading buildArtifact: " + buildArtifact);
+    String reproducibleLogPrefix = buildReproducible ? "patch non-reproducible: " : "validate reproducible: ";
+    int buildEntryCount = 0;
     try (ZipFile buildZipFile = new ZipFile(buildArtifact)) {
-      if (buildReproducible) {
-        debug.accept("validate reproducible: " + buildArtifact);
-        Enumeration<? extends ZipEntry> entries = buildZipFile.entries();
-        while (entries.hasMoreElements()) {
-          ZipEntry entry = entries.nextElement();
-          // Verify time
-          long entryTime = ZipUtils.getTimeUtc(entry).orElseThrow(() -> new ZipException(
-              "validate reproducible: No time on ZIP entry: " + buildArtifact + " @ " + entry.getName()));
-          if (entryTime != outputTimestampMillis
-              && zipRoundTime(entryTime) != zipRoundTime(outputTimestampMillis)) {
-            throw new ZipException("validate reproducible: Mismatched entry.time: expected " + outputTimestampMillis
-                + ", got " + entryTime + " on ZIP entry: " + buildArtifact + " @ " + entry.getName());
+      debug.accept(() -> reproducibleLogPrefix + buildArtifact);
+      Enumeration<ZipArchiveEntry> buildEntries = buildZipFile.getEntriesInPhysicalOrder();
+      SortedMap<Long, CentralDirectoryEntry> centralDirectory = buildReproducible ? null :
+          readCentralDirectory(debug, buildArtifact, buildZipFile);
+      while (buildEntries.hasMoreElements()) {
+        ZipArchiveEntry buildEntry = buildEntries.nextElement();
+        buildEntryCount++;
+        // Verify time
+        long buildEntryTime = getTimeUtc(buildArtifact, buildEntry);
+        //debug.accept("buildEntryTime = " + new Date(buildEntryTime));
+        if (buildEntryTime != outputTimestampMillis
+            /*&& zipRoundTime(entryTime) != zipRoundTime(outputTimestampMillis)*/) {
+          if (buildReproducible) {
+            throw new ZipException(reproducibleLogPrefix + "Mismatched entry.time: expected " + outputTimestampMillis + " ("
+                + new Date(outputTimestampMillis) + "), got " + buildEntryTime + " (" + new Date(outputTimestampMillis)
+                + ") on ZIP entry: " + buildArtifact + " @ " + buildEntry.getName());
+          } else {
+            // Patch
+            addTimePatches(info, patches, centralDirectory, buildEntry, buildEntryTime, outputTimestampMillis);
           }
-          // Verify last-modified time
-          long entryLastModifiedTime = ZipUtils.getLastModifiedTimeUtc(entry).orElseThrow(() -> new ZipException(
-              "validate reproducible: No last-modified time on ZIP entry: " + buildArtifact + " @ " + entry.getName()));
-          if (entryLastModifiedTime != outputTimestampMillis
-              && zipRoundTime(entryLastModifiedTime) != zipRoundTime(outputTimestampMillis)) {
-            throw new ZipException("validate reproducible: Mismatched entry.lastModifiedTime: expected " + outputTimestampMillis
-                + ", got " + entryLastModifiedTime + " on ZIP entry: " + buildArtifact + " @ " + entry.getName());
+        }
+        // Fail if has extra-based last modified time, since we aren't patching that
+        for (ZipExtraField extraField : buildEntry.getExtraFields()) {
+          if (extraField.getHeaderId() == X5455_ExtendedTimestamp.HEADER_ID) {
+            assert extraField instanceof X5455_ExtendedTimestamp;
+            throw new ZipException("X5455_ExtendedTimestamp patching not implemented: "
+                + buildArtifact + " @ " + buildEntry.getName());
           }
         }
       }
-      debug.accept("Opening lastBuildArtifact: " + lastBuildArtifact);
+    }
+    // Apply reproducible patches now
+    if (!patches.isEmpty()) {
+      assert !buildReproducible;
+      applyPatches(reproducibleLogPrefix, debug, info, patches, buildArtifact, buildEntryCount);
+      patches.clear();
+    }
+    debug.accept(() -> "Reading buildArtifact: " + buildArtifact);
+    try (ZipFile buildZipFile = new ZipFile(buildArtifact)) {
+      debug.accept(() -> "Reading lastBuildArtifact: " + lastBuildArtifact);
       try (ZipFile lastBuildZipFile = new ZipFile(lastBuildArtifact)) {
-        warn.accept("TODO: Implement ZIP file merge from " + lastBuildArtifact + " to " + buildArtifact);
+        byte[] buff1 = new byte[BUFFER_SIZE];
+        byte[] buff2 = new byte[BUFFER_SIZE];
+        Enumeration<ZipArchiveEntry> buildEntries = buildZipFile.getEntriesInPhysicalOrder();
+        SortedMap<Long, CentralDirectoryEntry> centralDirectory =
+            readCentralDirectory(debug, buildArtifact, buildZipFile);
+        while (buildEntries.hasMoreElements()) {
+          ZipArchiveEntry buildEntry = buildEntries.nextElement();
+          debug.accept(() -> "buildEntry: " + buildEntry);
+          String entryName = buildEntry.getName();
+          Iterator<ZipArchiveEntry> lastBuildEntriesIterator = lastBuildZipFile.getEntries(entryName).iterator();
+          if (lastBuildEntriesIterator.hasNext()) {
+            ZipArchiveEntry lastBuildEntry = lastBuildEntriesIterator.next();
+            if (lastBuildEntriesIterator.hasNext()) {
+              throw new ZipException("More than one entry from " + entryName + " found in " + lastBuildArtifact);
+            }
+            assert buildEntry.isDirectory() == lastBuildEntry.isDirectory();
+            debug.accept(() -> "lastBuildEntry: " + lastBuildEntry);
+            // If timestamps already match, there would be nothing to even patch
+            long buildEntryTime = getTimeUtc(buildArtifact, buildEntry);
+            long lastBuildEntryTime = getTimeUtc(lastBuildArtifact, lastBuildEntry);
+            if (buildEntryTime != lastBuildEntryTime) {
+              boolean matches;
+              if (buildEntry.getSize() != lastBuildEntry.getSize()) {
+                matches = false;
+              } else if (buildEntry.isDirectory()) {
+                assert buildEntry.getSize() == 0;
+                // A directory is modified only when an immediate child entry is added or removed
+                SortedSet<String> buildChildren = getDirectChildren(debug, buildZipFile, buildEntry);
+                SortedSet<String> lastBuildChildren = getDirectChildren(debug, lastBuildZipFile, lastBuildEntry);
+                matches = buildChildren.equals(lastBuildChildren);
+                if (!matches) {
+                  info.accept(() -> {
+                    StringBuilder sb = new StringBuilder(entryName + ": Directory is modified:");
+                    for (String buildChild : buildChildren) {
+                      if (!lastBuildChildren.contains(buildChild)) {
+                        sb.append(System.lineSeparator()).append("  Added: ").append(buildChild);
+                      }
+                    }
+                    for (String lastBuildChild : lastBuildChildren) {
+                      if (!buildChildren.contains(lastBuildChild)) {
+                        sb.append(System.lineSeparator()).append("  Removed: ").append(lastBuildChild);
+                      }
+                    }
+                    return sb.toString();
+                  });
+                }
+              } else {
+                int buildMethod = buildEntry.getMethod();
+                int lastBuildMethod = lastBuildEntry.getMethod();
+                boolean readRaw = buildMethod != -1 && buildMethod == lastBuildMethod;
+                try (
+                    InputStream buildInput = readRaw ? buildZipFile.getRawInputStream(buildEntry)
+                        : buildZipFile.getInputStream(buildEntry);
+                    InputStream lastBuildInput = readRaw ? lastBuildZipFile.getRawInputStream(lastBuildEntry)
+                        : lastBuildZipFile.getInputStream(lastBuildEntry)) {
+                  matches = streamsMatch(buildInput, lastBuildInput, buff1, buff2);
+                }
+              }
+              debug.accept(() -> "matches: " + matches);
+              if (matches) {
+                addTimePatches(info, patches, centralDirectory, buildEntry, buildEntryTime, lastBuildEntryTime);
+              }
+            } else {
+              debug.accept(() -> "entry already at last build timestamp: " + buildEntry);
+            }
+          } else {
+            info.accept(() -> "New entry not found in last build: " + buildEntry);
+          }
+        }
       }
+    }
+    if (!patches.isEmpty()) {
+      // Patch in-place
+      applyPatches("patch buildArtifact: ", debug, info, patches, buildArtifact, buildEntryCount);
     }
   }
 
@@ -166,8 +604,19 @@ public final class ZipTimestampMerge {
    * Creates a ZIP file with contents matching {@code buildArtifact} but with timestamps derived from
    * {@code lastBuildArtifact}.
    * <p>
-   * For each entry, if the content is byte-for-byte equal, maintains the
-   * {@linkplain ZipEntry#getTime() time} and {@linkplain ZipEntry#getLastModifiedTime()}.
+   * For each entry, if the content is byte-for-byte equal, maintains the {@linkplain ZipArchiveEntry#getTime() time}.
+   * </p>
+   * <p>
+   * TODO: Describe more about creation time management
+   * </p>
+   * <p>
+   * TODO: Describe when an entry is found in a different location
+   * </p>
+   * <p>
+   * TODO: When nothing altered, resulting ZIP file is verified to match buildArtifact byte-for-byte.
+   * </p>
+   * <p>
+   * TODO: Which file modified timestamp used for mergedZip?
    * </p>
    *
    * @param outputTimestamp   See {@link ZipTimestampMergeTask#setOutputTimestamp(java.lang.String)}
@@ -187,7 +636,9 @@ public final class ZipTimestampMerge {
         lastBuildArtifact,
         buildArtifact,
         logger::fine,
-        logger::warning
+        logger::info,
+        logger::warning,
+        logger::severe
     );
   }
 
@@ -291,10 +742,10 @@ public final class ZipTimestampMerge {
       boolean requireLastBuild,
       File lastBuildDirectory,
       File buildDirectory,
-      Consumer<? super String> debug,
-      Consumer<? super String> info,
-      Consumer<? super String> warn,
-      Consumer<? super String> err
+      Consumer<Supplier<String>> debug,
+      Consumer<Supplier<String>> info,
+      Consumer<Supplier<String>> warn,
+      Consumer<Supplier<String>> err
   ) throws IOException, ParseException {
     // Validate
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
@@ -338,22 +789,24 @@ public final class ZipTimestampMerge {
     for (Map.Entry<Identifier, File> buildEntry : buildArtifacts.entrySet()) {
       Identifier identifier = buildEntry.getKey();
       File buildArtifact = buildEntry.getValue();
-      debug.accept(identifier + ": buildArtifact: " + buildArtifact);
+      debug.accept(() -> identifier + ": buildArtifact: " + buildArtifact);
       File lastBuildArtifact = lastBuildArtifacts.get(identifier);
       if (lastBuildArtifact != null) {
-        debug.accept(identifier + ": lastBuildArtifact: " + lastBuildArtifact);
+        debug.accept(() -> identifier + ": lastBuildArtifact: " + lastBuildArtifact);
         mergeFile(
             outputTimestamp,
             buildReproducible,
             lastBuildArtifact,
             buildArtifact,
             // Prepend identifier on log messages
-            msg -> debug.accept(identifier + ": " + msg),
-            msg -> warn.accept(identifier + ": " + msg)
+            msg -> debug.accept(() -> identifier + ": " + msg.get()),
+            msg -> info.accept(() -> identifier + ": " + msg.get()),
+            msg -> warn.accept(() -> identifier + ": " + msg.get()),
+            msg -> err.accept(() -> identifier + ": " + msg.get())
         );
       } else {
         assert !requireLastBuild : "one-to-one mapping already enforced";
-        warn.accept(identifier + ": not found in lastBuildDirectory: " + lastBuildDirectory);
+        warn.accept(() -> identifier + ": not found in lastBuildDirectory: " + lastBuildDirectory);
       }
     }
   }

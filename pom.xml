@@ -104,6 +104,19 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     </repository>
   </repositories>
 
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <argLine>--add-opens org.apache.commons.compress/org.apache.commons.compress.archivers.zip=com.aoapps.ant.tasks</argLine>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
   <profiles>
     <profile>
       <id>offlineLinks</id><activation><file><exists>src/main/java</exists></file></activation>
@@ -121,6 +134,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                       <groupId>org.apache.ant</groupId><artifactId>ant</artifactId><classifier>javadoc</classifier>
                       <includes>element-list, package-list</includes>
                       <outputDirectory>${project.build.directory}/offlineLinks/org.apache.ant/ant</outputDirectory>
+                    </artifactItem>
+                    <artifactItem>
+                      <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><classifier>javadoc</classifier>
+                      <includes>element-list, package-list</includes>
+                      <outputDirectory>${project.build.directory}/offlineLinks/org.apache.commons/commons-compress</outputDirectory>
                     </artifactItem>
                     <!-- Test Direct -->
                     <artifactItem>
@@ -141,6 +159,10 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                 <offlineLink>
                   <url>https://ant.apache.org/manual/api/</url>
                   <location>${project.build.directory}/offlineLinks/org.apache.ant/ant</location>
+                </offlineLink>
+                <offlineLink>
+                  <url>https://commons.apache.org/proper/commons-compress/apidocs/</url>
+                  <location>${project.build.directory}/offlineLinks/org.apache.commons/commons-compress</location>
                 </offlineLink>
                 <!-- Test Direct -->
                 <offlineLink>
@@ -211,6 +233,9 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
           <exclusion><groupId>org.apache.ant</groupId><artifactId>ant-launcher</artifactId></exclusion>
         </exclusions>
       </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>1.24.0</version>
+      </dependency>
       <!-- Test Direct -->
       <dependency>
         <groupId>junit</groupId><artifactId>junit</artifactId><version>4.13.2</version>
@@ -230,6 +255,9 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <!-- Direct -->
     <dependency>
       <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId>
     </dependency>
     <!-- Test Direct -->
     <dependency>

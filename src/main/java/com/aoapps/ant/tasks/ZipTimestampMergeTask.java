@@ -33,7 +33,7 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.LogLevel;
 
 /**
- * Ant task that invokes {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File, java.util.function.Consumer, java.util.function.Consumer, java.util.function.Consumer, java.util.function.Consumer)}.
+ * Ant task that invokes {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}.
  *
  * @author  AO Industries, Inc.
  */
@@ -57,7 +57,8 @@ public class ZipTimestampMergeTask extends Task {
 
   /**
    * When the build is reproducible (the default), all AAR/JAR/WAR/ZIP entries are verified to match
-   * {@link #setOutputTimestamp(java.lang.String) outputTimestamp}.
+   * {@link #setOutputTimestamp(java.lang.String) outputTimestamp}.  When not flagged as reproducible, all entries
+   * will be patched to be equal to {@link #setOutputTimestamp(java.lang.String) outputTimestamp}.
    */
   public void setBuildReproducible(boolean buildReproducible) {
     this.buildReproducible = buildReproducible;
@@ -101,7 +102,7 @@ public class ZipTimestampMergeTask extends Task {
   }
 
   /**
-   * Calls {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File, java.util.function.Consumer, java.util.function.Consumer, java.util.function.Consumer, java.util.function.Consumer)}
+   * Calls {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}
    * while logging to {@link #log(java.lang.String, int)}.
    */
   @Override
@@ -113,10 +114,10 @@ public class ZipTimestampMergeTask extends Task {
           requireLastBuild,
           lastBuildDirectory,
           buildDirectory,
-          msg -> log(msg, LogLevel.DEBUG.getLevel()),
-          msg -> log(msg, LogLevel.INFO.getLevel()),
-          msg -> log(msg, LogLevel.WARN.getLevel()),
-          msg -> log(msg, LogLevel.ERR.getLevel())
+          msg -> log(msg.get(), LogLevel.DEBUG.getLevel()),
+          msg -> log(msg.get(), LogLevel.INFO.getLevel()),
+          msg -> log(msg.get(), LogLevel.WARN.getLevel()),
+          msg -> log(msg.get(), LogLevel.ERR.getLevel())
       );
     } catch (IOException | ParseException e) {
       throw new BuildException(e);

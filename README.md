@@ -26,7 +26,7 @@ Ant tasks used in building AO-supported projects.
 * [GitHub](https://github.com/ao-apps/ao-ant-tasks)
 
 ## Features
-* Fine-grained management of creation and last-modified times within `*.aar`, `*.jar`, `*.war`, and `*.zip` files for optimum reproducibility and publishability.
+* Fine-grained management of last-modified times within `*.aar`, `*.jar`, `*.war`, and `*.zip` files for optimum reproducibility and publishability.
 
 ## Motivation
 Our immediate goal is to have efficient [sitemaps](https://www.sitemaps.org/) for generated Javadocs.  The sitemaps
@@ -34,8 +34,8 @@ must provide accurate last-modified timestamps for generated pages.  Our current
 [reproducible builds](https://maven.apache.org/guides/mini/guide-reproducible-builds.html) is losing last-modified
 information.
 
-More broadly, we desire accurate creation and last-modified times for all project resources deployed in `*.aar`,
-`*.jar`, `*.war`, and `*.zip` files.  This can have implications for
+More broadly, we desire accurate last-modified times for all project resources deployed in `*.aar`, `*.jar`, `*.war`,
+and `*.zip` files.  This can have implications for
 [web content modeling](https://github.com/ao-apps/semanticcms-core-model),
 [web resource caching](https://github.com/ao-apps/ao-servlet-last-modified), and the resulting
 [sitemap generation](https://github.com/ao-apps/semanticcms-core-sitemap).
@@ -62,24 +62,19 @@ changes elsewhere in the site.
 
 ## Our Solution
 Leveraging the [Apache Ant](https://ant.apache.org/) tasks provided by this project, our
-[Jenkins](https://www.jenkins.io/) builds will now compare the AAR/JAR/WAR/ZIP files between the last successful build and
-the current build.  When the entry content is identical to the previous build, the entry will be adjusted to have the
-same timestamp as the previous build.  Thus, modified times will be carried through from build to build so long as the
-content has not changed.  If the file is new to a build, it will retain the timestamp resulting from
+[Jenkins](https://www.jenkins.io/) builds will now compare the AAR/JAR/WAR/ZIP files between the last successful build
+and the current build.  When the entry content is identical to the previous build, the entry will be modified in-place
+to have the same timestamp as the previous build.  Thus, modified times will be carried through from build to build so
+long as the content has not changed.  If the entry is new to a build, it will retain the timestamp resulting from
 `${project.build.outputTimestamp}` as is already done.
 
-We also introduce tracking of [entry creation times](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/zip/ZipEntry.html#getCreationTime%28%29).
-The first time an entry is seen, the creation time value is assigned from `${project.build.outputTimestamp}`.
-Subsequent builds will carry-through the original creation time.  When an entry is found to be relocated, it will also
-retain the original creation time, but will have an updated modified time.
-
 Our release builds do not use this optimization.  They use standard reproducible timestamps, typically derived from
-`${git.commit.time}`.  Our releases will also not include any creation timestamps.
+`${git.commit.time}`.
 
 This is only an optimization to assist crawlers in identifying new content more efficiently.  We only publish content
 from our SNAPSHOT (or POST-SNAPSHOT) builds.  These snapshots are typically published by Jenkins (which will contain
-the creation times and adjusted modification times), but may also be published directly by developers (which will not
-have any creation times and will use standard reproducible timestamps).
+the patched modification times), but may also be published directly by developers (which will use standard reproducible
+timestamps).
 
 ### Why Ant Tasks Instead of Maven Plugin?
 We have implemented this as [Ant tasks](https://ant.apache.org/manual/tutorial-writing-tasks.html) instead of a
