@@ -36,6 +36,8 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <module.name>com.aoapps.ant.tasks</module.name>
     <javadoc.breadcrumbs><![CDATA[<a target="${javadoc.target}" href="https://oss.aoapps.com/">AO OSS</a>
 / <a target="${javadoc.target}" href="${project.url}">Ant Tasks</a>]]></javadoc.breadcrumbs>
+    <!-- See https://stackoverflow.com/questions/23190107/cannot-use-jacoco-jvm-args-and-surefire-jvm-args-together-in-maven -->
+    <argLine></argLine>
   </properties>
 
   <name>AO Ant Tasks</name>
@@ -110,7 +112,8 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         <plugin>
           <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId>
           <configuration>
-            <argLine>--add-opens org.apache.commons.compress/org.apache.commons.compress.archivers.zip=com.aoapps.ant.tasks</argLine>
+            <!-- See https://stackoverflow.com/questions/23190107/cannot-use-jacoco-jvm-args-and-surefire-jvm-args-together-in-maven -->
+            <argLine>@{argLine} --add-opens org.apache.commons.compress/org.apache.commons.compress.archivers.zip=com.aoapps.ant.tasks</argLine>
           </configuration>
         </plugin>
       </plugins>
