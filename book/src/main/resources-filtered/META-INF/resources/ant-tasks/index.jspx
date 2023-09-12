@@ -34,7 +34,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-09T23:35:05Z"
+    dateModified="2023-09-12T03:15:10Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
@@ -75,6 +75,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <section:section label="Features">
       <ul>
         <li>Fine-grained management of last-modified times within <code>*.aar</code>, <code>*.jar</code>, <code>*.war</code>, and <code>*.zip</code> files for optimum reproducibility and publishability.</li>
+        <li>Generate directory-only ZIP files with a reference timestamp to be able to manipulate ZIP file structure reproducibly while also not losing per-entry timestamps.</li>
       </ul>
     </section:section>
     <section:section label="Motivation">
