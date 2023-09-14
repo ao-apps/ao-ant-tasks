@@ -27,6 +27,10 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     classname="com.aoapps.ant.tasks.CreateZippedDirectoriesTask"
   />
   <taskdef
+    name="generate-javadoc-sitemap"
+    classname="com.aoapps.ant.tasks.GenerateJavadocSitemapTask"
+  />
+  <taskdef
     name="seo-javadoc-filter"
     classname="com.aoapps.ant.tasks.SeoJavadocFilterTask"
   />

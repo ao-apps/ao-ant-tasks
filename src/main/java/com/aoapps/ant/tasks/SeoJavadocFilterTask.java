@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
@@ -50,8 +49,8 @@ Test with:
 /**
  * Ant task that invokes {@link SeoJavadocFilter#filterJavadocJar(java.io.File, java.lang.String, java.lang.Iterable, java.lang.Iterable)}.
  * <p>
- * Note: This task should be performed after {@link ZipTimestampMergeTask} in order to have correct timestamps inside
- * the generated sitemaps.
+ * Note: This task should be performed before {@link ZipTimestampMergeTask} in order to have correct content to be able
+ * to maintain timestamps.
  * </p>
  *
  * @author  AO Industries, Inc.
@@ -98,10 +97,10 @@ public class SeoJavadocFilterTask extends Task {
     assert javaseUrlPrefixes.size() == size;
   }
 
-  private static final String FILTER_SUFFIX = "-javadoc.jar";
+  static final String FILTER_SUFFIX = "-javadoc.jar";
 
-  private static final FileFilter javadocJarFilter =
-      pathname -> pathname.getName().toLowerCase(Locale.ROOT).endsWith(FILTER_SUFFIX);
+  static final FileFilter javadocJarFilter =
+      pathname -> StringUtils.endsWithIgnoreCase(pathname.getName(), FILTER_SUFFIX);
 
   private File buildDirectory;
   private String projectUrl;
@@ -123,7 +122,7 @@ public class SeoJavadocFilterTask extends Task {
   }
 
   /**
-   * The project url.  The apidocs URLs will be based on this, dependending on artifact classifier.
+   * The project url.  The apidocs URLs will be based on this, depending on artifact classifier.
    * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}test/apidocs/"}.
    * Otherwise will be {@code "${projectUrl}apidocs/"}
    */
@@ -197,6 +196,16 @@ public class SeoJavadocFilterTask extends Task {
     this.follow = followPrefixes;
   }
 
+  static String getApidocsUrl(File javadocJar, String projectUrl) {
+    String apidocsUrl;
+    if (StringUtils.endsWithIgnoreCase(javadocJar.getName(), "-test-javadoc.jar")) {
+      apidocsUrl = projectUrl + "test/apidocs";
+    } else {
+      apidocsUrl = projectUrl + "apidocs";
+    }
+    return apidocsUrl;
+  }
+
   /**
    * Calls {@link SeoJavadocFilter#filterJavadocJar(java.io.File, java.lang.String, java.lang.Iterable, java.lang.Iterable)} for each
    * file in {@link #setBuildDirectory(java.lang.String)} that matches {@link #javadocJarFilter}
@@ -218,15 +227,9 @@ public class SeoJavadocFilterTask extends Task {
       File[] javadocJarFiles = buildDirectory.listFiles(javadocJarFilter);
       if (javadocJarFiles != null) {
         for (File javadocJar : javadocJarFiles) {
-          String apidocsUrl;
-          if (StringUtils.endsWithIgnoreCase(javadocJar.getName(), "-test-javadoc.jar")) {
-            apidocsUrl = projectUrl + "test/apidocs";
-          } else {
-            apidocsUrl = projectUrl + "apidocs";
-          }
           SeoJavadocFilter.filterJavadocJar(
               javadocJar,
-              apidocsUrl,
+              getApidocsUrl(javadocJar, projectUrl),
               nofollow,
               follow,
               msg -> log(msg.get(), LogLevel.DEBUG.getLevel()),

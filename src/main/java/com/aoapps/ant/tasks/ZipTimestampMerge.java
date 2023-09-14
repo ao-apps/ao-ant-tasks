@@ -63,6 +63,10 @@ import org.apache.commons.compress.utils.ByteUtils;
 /**
  * Standalone implementation of ZIP-file timestamp merging.
  * <p>
+ * Note: This task should be performed before {@link GenerateJavadocSitemap} in order to have correct timestamps
+ * inside the generated sitemaps.
+ * </p>
+ * <p>
  * This does not have any direct Ant dependencies.
  * If only using this class, it is permissible to exclude the ant dependencies.
  * </p>

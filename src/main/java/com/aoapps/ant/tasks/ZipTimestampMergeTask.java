@@ -34,6 +34,10 @@ import org.apache.tools.ant.types.LogLevel;
 
 /**
  * Ant task that invokes {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}.
+ * <p>
+ * Note: This task should be performed before {@link GenerateJavadocSitemapTask} in order to have correct timestamps
+ * inside the generated sitemaps.
+ * </p>
  *
  * @author  AO Industries, Inc.
  */
