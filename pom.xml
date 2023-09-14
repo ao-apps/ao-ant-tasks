@@ -37,7 +37,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <javadoc.breadcrumbs><![CDATA[<a target="${javadoc.target}" href="https://oss.aoapps.com/">AO OSS</a>
 / <a target="${javadoc.target}" href="${project.url}">Ant Tasks</a>]]></javadoc.breadcrumbs>
     <!-- See https://stackoverflow.com/questions/23190107/cannot-use-jacoco-jvm-args-and-surefire-jvm-args-together-in-maven -->
+    <!-- add-opens during testing -->
     <argLine></argLine>
+    <!-- Dependencies -->
+    <commons-io.version>2.13.0</commons-io.version>
+    <commons-lang3.version>3.13.0</commons-lang3.version>
   </properties>
 
   <name>AO Ant Tasks</name>
@@ -109,6 +113,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
   <build>
     <pluginManagement>
       <plugins>
+        <!-- add-opens during testing -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId>
           <configuration>
@@ -143,6 +148,21 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                       <includes>element-list, package-list</includes>
                       <outputDirectory>${project.build.directory}/offlineLinks/org.apache.commons/commons-compress</outputDirectory>
                     </artifactItem>
+                    <artifactItem>
+                      <groupId>commons-io</groupId><artifactId>commons-io</artifactId><classifier>javadoc</classifier>
+                      <includes>element-list, package-list</includes>
+                      <outputDirectory>${project.build.directory}/offlineLinks/commons-io/commons-io</outputDirectory>
+                    </artifactItem>
+                    <artifactItem>
+                      <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId><classifier>javadoc</classifier>
+                      <includes>element-list, package-list</includes>
+                      <outputDirectory>${project.build.directory}/offlineLinks/org.apache.commons/commons-lang3</outputDirectory>
+                    </artifactItem>
+                    <artifactItem>
+                      <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId><classifier>javadoc</classifier>
+                      <includes>element-list, package-list</includes>
+                      <outputDirectory>${project.build.directory}/offlineLinks/org.apache.commons/commons-text</outputDirectory>
+                    </artifactItem>
                     <!-- Test Direct -->
                     <artifactItem>
                       <groupId>junit</groupId><artifactId>junit</artifactId><classifier>javadoc</classifier>
@@ -166,6 +186,18 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                 <offlineLink>
                   <url>https://commons.apache.org/proper/commons-compress/apidocs/</url>
                   <location>${project.build.directory}/offlineLinks/org.apache.commons/commons-compress</location>
+                </offlineLink>
+                <offlineLink>
+                  <url>https://javadoc.io/doc/commons-io/commons-io/${commons-io.version}/</url>
+                  <location>${project.build.directory}/offlineLinks/commons-io/commons-io</location>
+                </offlineLink>
+                <offlineLink>
+                  <url>https://javadoc.io/doc/org.apache.commons/commons-lang3/${commons-lang3.version}/</url>
+                  <location>${project.build.directory}/offlineLinks/org.apache.commons/commons-lang3</location>
+                </offlineLink>
+                <offlineLink>
+                  <url>https://commons.apache.org/proper/commons-text/apidocs/</url>
+                  <location>${project.build.directory}/offlineLinks/org.apache.commons/commons-text</location>
                 </offlineLink>
                 <!-- Test Direct -->
                 <offlineLink>
@@ -239,6 +271,15 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
       <dependency>
         <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>1.24.0</version>
       </dependency>
+      <dependency>
+        <groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>${commons-io.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId><version>${commons-lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId><version>1.10.0</version>
+      </dependency>
       <!-- Test Direct -->
       <dependency>
         <groupId>junit</groupId><artifactId>junit</artifactId><version>4.13.2</version>
@@ -261,6 +302,15 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId><artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId>
     </dependency>
     <!-- Test Direct -->
     <dependency>

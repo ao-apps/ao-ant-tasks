@@ -28,6 +28,7 @@ import java.io.IOException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
@@ -133,16 +134,7 @@ public class CreateZippedDirectoriesTask extends Task {
           throw new BuildException("reference entry does not have any timestamp: " + referenceZip + " @ " + referencePath);
         }
       }
-      File parent = generateZip.getParentFile();
-      if (!parent.exists()) {
-        if (!parent.mkdirs()) {
-          throw new IOException("Unable to create directory " + parent);
-        }
-      } else {
-        if (!parent.isDirectory()) {
-          throw new BuildException("Parent is not a directory: " + parent);
-        }
-      }
+      FileUtils.forceMkdirParent(generateZip);
       try (ZipArchiveOutputStream generatedZipOut = new ZipArchiveOutputStream(generateZip)) {
         assert !generatePath.startsWith("/");
         assert !generatePath.contains("//");

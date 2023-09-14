@@ -169,21 +169,28 @@ public final class ZipTimestampMerge {
   }
 
   /**
+   * Offsets a time from ZIP entry time to Java time in milliseconds since Epoch.
+   */
+  static long offsetFromZipToUtc(long entryTime) {
+    return entryTime + TimeZone.getDefault().getOffset(entryTime);
+  }
+
+  /**
    * Gets the time in UTC.
    *
    * @throws ZipException if no time set ({@link ZipArchiveEntry#getTime()} returned -1).
    */
   // Note: Based on ao-lang:ZipUtils.getTimeUtc
   private static long getTimeUtc(File artifact, ZipArchiveEntry entry) throws ZipException {
-    long time = entry.getTime();
-    if (time == -1) {
+    long entryTime = entry.getTime();
+    if (entryTime == -1) {
       throw new ZipException("Entry has no timestamp, cannot patch: " + entry.getName() + " in " + artifact);
     }
-    long offset = time + TimeZone.getDefault().getOffset(time);
-    if (offset == -1) {
+    long javaTime = offsetFromZipToUtc(entryTime);
+    if (javaTime == -1) {
       throw new ZipException("Time is -1 after offset: " + artifact + "!" + entry.getName());
     }
-    return offset;
+    return offsetFromZipToUtc(entryTime);
   }
 
   /**

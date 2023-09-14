@@ -25,6 +25,9 @@ module com.aoapps.ant.tasks {
   // Direct
   requires ant; // <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
   requires org.apache.commons.compress; // <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId>
+  requires org.apache.commons.io; // <groupId>commons-io</groupId><artifactId>commons-io</artifactId>
+  requires org.apache.commons.lang3; // <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId>
+  requires org.apache.commons.text; // <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId>
   // Java SE
   requires java.logging;
 }

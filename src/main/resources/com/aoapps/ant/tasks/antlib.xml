@@ -23,11 +23,15 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
 -->
 <antlib>
   <taskdef
-    name="zip-timestamp-merge"
-    classname="com.aoapps.ant.tasks.ZipTimestampMergeTask"
-  />
-  <taskdef
     name="create-zipped-directories"
     classname="com.aoapps.ant.tasks.CreateZippedDirectoriesTask"
+  />
+  <taskdef
+    name="seo-javadoc-filter"
+    classname="com.aoapps.ant.tasks.SeoJavadocFilterTask"
+  />
+  <taskdef
+    name="zip-timestamp-merge"
+    classname="com.aoapps.ant.tasks.ZipTimestampMergeTask"
   />
 </antlib>
