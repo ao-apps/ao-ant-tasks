@@ -758,7 +758,7 @@ public final class SeoJavadocFilter {
         }
       }
       // Ovewrite if anything changed, delete otherwise
-      if (FileUtils.contentEquals(javadocJar, tmpFile)) {
+      if (!FileUtils.contentEquals(javadocJar, tmpFile)) {
         if (!tmpFile.renameTo(javadocJar)) {
           throw new IOException("Rename failed: " + tmpFile + " to " + javadocJar);
         }
