@@ -772,7 +772,7 @@ public final class SeoJavadocFilter {
    * Filters a single JAR file with the transformations described in {@linkplain SeoJavadocFilter this class header}.
    *
    * @param javadocJar See {@link SeoJavadocFilterTask#setBuildDirectory(java.lang.String)}
-   * @param apidocsUrl See {@link SeoJavadocFilterTask#setApidocsUrl(java.lang.String)}
+   * @param apidocsUrl See {@link SeoJavadocFilterTask#setProjectUrl(java.lang.String)}
    * @param nofollow   See {@link SeoJavadocFilterTask#setNofollow(java.lang.String)}
    * @param follow     See {@link SeoJavadocFilterTask#setFollow(java.lang.String)}
    */

@@ -33,6 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.LogLevel;
@@ -103,7 +104,7 @@ public class SeoJavadocFilterTask extends Task {
       pathname -> pathname.getName().toLowerCase(Locale.ROOT).endsWith(FILTER_SUFFIX);
 
   private File buildDirectory;
-  private String apidocsUrl;
+  private String projectUrl;
   private Iterable<String> nofollow = defaultNofollows;
   private Iterable<String> follow = Collections.singletonList(SeoJavadocFilter.ANY_URL);
 
@@ -122,10 +123,15 @@ public class SeoJavadocFilterTask extends Task {
   }
 
   /**
-   * The apidocs url.
+   * The project url.  The apidocs URLs will be based on this, dependending on artifact classifier.
+   * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}test/apidocs/"}.
+   * Otherwise will be {@code "${projectUrl}apidocs/"}
    */
-  public void setApidocsUrl(String apidocsUrl) {
-    this.apidocsUrl = apidocsUrl;
+  public void setProjectUrl(String projectUrl) {
+    if (!projectUrl.endsWith("/")) {
+      projectUrl += "/";
+    }
+    this.projectUrl = projectUrl;
   }
 
   /**
@@ -212,6 +218,12 @@ public class SeoJavadocFilterTask extends Task {
       File[] javadocJarFiles = buildDirectory.listFiles(javadocJarFilter);
       if (javadocJarFiles != null) {
         for (File javadocJar : javadocJarFiles) {
+          String apidocsUrl;
+          if (StringUtils.endsWithIgnoreCase(javadocJar.getName(), "-test-javadoc.jar")) {
+            apidocsUrl = projectUrl + "test/apidocs";
+          } else {
+            apidocsUrl = projectUrl + "apidocs";
+          }
           SeoJavadocFilter.filterJavadocJar(
               javadocJar,
               apidocsUrl,
