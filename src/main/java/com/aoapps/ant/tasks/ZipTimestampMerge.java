@@ -570,22 +570,44 @@ public final class ZipTimestampMerge {
               // A directory is modified only when an immediate child entry is added or removed
               SortedSet<String> buildChildren = getDirectChildren(debug, buildZipFile, buildEntry);
               SortedSet<String> lastBuildChildren = getDirectChildren(debug, lastBuildZipFile, lastBuildEntry);
-              updated = !buildChildren.equals(lastBuildChildren);
-              if (updated) {
-                info.accept(() -> {
-                  StringBuilder sb = new StringBuilder(entryName + ": Directory is modified:");
-                  for (String buildChild : buildChildren) {
-                    if (!lastBuildChildren.contains(buildChild)) {
+              if (buildChildren.equals(lastBuildChildren)) {
+                updated = false;
+              } else {
+                SortedSet<String> added = new TreeSet<>();
+                // Find what has specifically been added and removed
+                for (String buildChild : buildChildren) {
+                  if (!lastBuildChildren.contains(buildChild)) {
+                    added.add(buildChild);
+                  }
+                }
+                SortedSet<String> removed = new TreeSet<>();
+                for (String lastBuildChild : lastBuildChildren) {
+                  if (!buildChildren.contains(lastBuildChild)) {
+                    removed.add(lastBuildChild);
+                  }
+                }
+                // Ignore special case of META-INF/sitemap-index.xml not yet generated
+                if (buildEntry.getName().equals(GenerateJavadocSitemap.META_INF_DIRECTORY)) {
+                  if (removed.remove(GenerateJavadocSitemap.SITEMAP_INDEX_NAME)) {
+                    debug.accept(() -> "Ignoring missing " + GenerateJavadocSitemap.META_INF_DIRECTORY
+                        + GenerateJavadocSitemap.SITEMAP_INDEX_NAME
+                        + " in order to not unnecessarily update timestamp of "
+                        + GenerateJavadocSitemap.META_INF_DIRECTORY);
+                  }
+                }
+                updated = !added.isEmpty() || !removed.isEmpty();
+                if (updated) {
+                  info.accept(() -> {
+                    StringBuilder sb = new StringBuilder(entryName + ": Directory is modified:");
+                    for (String buildChild : added) {
                       sb.append(System.lineSeparator()).append("  Added: ").append(buildChild);
                     }
-                  }
-                  for (String lastBuildChild : lastBuildChildren) {
-                    if (!buildChildren.contains(lastBuildChild)) {
+                    for (String lastBuildChild : removed) {
                       sb.append(System.lineSeparator()).append("  Removed: ").append(lastBuildChild);
                     }
-                  }
-                  return sb.toString();
-                });
+                    return sb.toString();
+                  });
+                }
               }
             } else {
               int buildMethod = buildEntry.getMethod();

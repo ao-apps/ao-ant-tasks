@@ -101,7 +101,7 @@ public final class GenerateJavadocSitemap {
   /**
    * The ZIP entry for <code>META-INF/</code> directory.
    */
-  private static final String META_INF_DIRECTORY = "META-INF/";
+  static final String META_INF_DIRECTORY = "META-INF/";
 
   /**
    * Treat generated javadocs with a fairly low priority.
@@ -112,7 +112,7 @@ public final class GenerateJavadocSitemap {
   /**
    * The ZIP entry containing the sitemap index.
    */
-  private static final String SITEMAP_INDEX_NAME = META_INF_DIRECTORY + "sitemap-index.xml";
+  static final String SITEMAP_INDEX_NAME = "sitemap-index.xml";
 
   /**
    * One sitemap URL.
@@ -345,7 +345,7 @@ public final class GenerateJavadocSitemap {
             if (zipEntryTime == -1) {
               throw new ZipException("No time in entry: " + javadocJar + " @ " + zipEntryName);
             }
-            if (zipEntryName.equals(SITEMAP_NAME) || zipEntryName.equals(SITEMAP_INDEX_NAME)) {
+            if (zipEntryName.equals(SITEMAP_NAME) || zipEntryName.equals(META_INF_DIRECTORY + SITEMAP_INDEX_NAME)) {
               // Drop any existing sitemaps
               debug.accept(() -> zipEntryName + ": Dropping existing sitemap");
             } else {
@@ -397,7 +397,7 @@ public final class GenerateJavadocSitemap {
             throw new ZipException("Missing " + META_INF_DIRECTORY + " directory: " + javadocJar);
           }
           // Generate sitemap-index.xml
-          ZipArchiveEntry sitemapIndexEntry = new ZipArchiveEntry(SITEMAP_INDEX_NAME);
+          ZipArchiveEntry sitemapIndexEntry = new ZipArchiveEntry(META_INF_DIRECTORY + SITEMAP_INDEX_NAME);
           copyZipMeta(referenceEntry, sitemapIndexEntry);
           sitemapIndexEntry.setTime(sitemapLastModified);
           sitemapIndexEntry.setComment(GENERATED_COMMENT);
