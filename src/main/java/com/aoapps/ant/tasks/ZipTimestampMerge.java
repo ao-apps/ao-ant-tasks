@@ -656,7 +656,8 @@ public final class ZipTimestampMerge {
   /**
    * Artifacts are identified by {@code (artifactId, classifier, type)}.
    */
-  private static final class Identifier implements Comparable<Identifier> {
+  // non-private for testing only
+  static final class Identifier implements Comparable<Identifier> {
 
     private static final Pattern ARTIFACT_ID_PATTERN = Pattern.compile("-[0-9]");
 

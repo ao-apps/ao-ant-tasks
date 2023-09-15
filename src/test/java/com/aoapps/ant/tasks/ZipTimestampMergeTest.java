@@ -107,7 +107,7 @@ public class ZipTimestampMergeTest {
   }
 
   private static String parseArtifactId(String filename) throws Throwable {
-    Method method = ZipTimestampMerge.class.getDeclaredMethod("parseArtifactId", String.class);
+    Method method = ZipTimestampMerge.Identifier.class.getDeclaredMethod("parseArtifactId", String.class);
     method.setAccessible(true);
     try {
       return (String) method.invoke(null, filename);
@@ -130,7 +130,7 @@ public class ZipTimestampMergeTest {
   }
 
   private static String parseType(String filename) throws Throwable {
-    Method method = ZipTimestampMerge.class.getDeclaredMethod("parseType", String.class);
+    Method method = ZipTimestampMerge.Identifier.class.getDeclaredMethod("parseType", String.class);
     method.setAccessible(true);
     try {
       return (String) method.invoke(null, filename);
@@ -155,7 +155,7 @@ public class ZipTimestampMergeTest {
   }
 
   private static String parseClassifier(String filename, String type) throws Throwable {
-    Method method = ZipTimestampMerge.class.getDeclaredMethod("parseClassifier", String.class, String.class);
+    Method method = ZipTimestampMerge.Identifier.class.getDeclaredMethod("parseClassifier", String.class, String.class);
     method.setAccessible(true);
     try {
       return (String) method.invoke(null, filename, type);
