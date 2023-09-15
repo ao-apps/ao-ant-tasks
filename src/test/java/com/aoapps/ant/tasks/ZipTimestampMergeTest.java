@@ -179,20 +179,4 @@ public class ZipTimestampMergeTest {
     assertEquals("longer classifier", "test-javadoc", parseClassifier("artifact-1.2.3-SNAPSHOT-test-javadoc.jar", "jar"));
     assertEquals("only lowercase", "", parseClassifier("artifact-1.2.3-SNAPSHOT-javadoC.jar", "jar"));
   }
-
-  /**
-   * Tests {@link ZipTimestampMerge#mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)}.
-   */
-  @Test
-  public void testMergeFile() throws Throwable {
-    // TODO: Implement tests
-  }
-
-  /**
-   * Tests {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}.
-   */
-  @Test
-  public void testMergeDirectory() throws Throwable {
-    // TODO: Implement tests
-  }
 }
