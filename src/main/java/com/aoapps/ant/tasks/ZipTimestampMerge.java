@@ -616,18 +616,6 @@ public final class ZipTimestampMerge {
    * <p>
    * For each entry, if the content is byte-for-byte equal, maintains the {@linkplain ZipArchiveEntry#getTime() time}.
    * </p>
-   * <p>
-   * TODO: Describe more about creation time management
-   * </p>
-   * <p>
-   * TODO: Describe when an entry is found in a different location
-   * </p>
-   * <p>
-   * TODO: When nothing altered, resulting ZIP file is verified to match buildArtifact byte-for-byte.
-   * </p>
-   * <p>
-   * TODO: Which file modified timestamp used for mergedZip?
-   * </p>
    *
    * @param outputTimestamp   See {@link ZipTimestampMergeTask#setOutputTimestamp(java.lang.String)}
    * @param buildReproducible See {@link ZipTimestampMergeTask#setBuildReproducible(boolean)}
