@@ -163,7 +163,6 @@ public final class ZipTimestampMerge {
    * Round to 2-second interval for ZIP time compatibility.
    */
   private static long roundDownDosTime(long millis) {
-    // TODO: Round up with " + 1999"?
     return Math.floorDiv(millis, 2000) * 2000;
   }
 
