@@ -25,9 +25,13 @@
 // Parent, Extensions, Plugins, Direct and BOM Dependencies
 def upstreamProjects = [
   // Parent
-  // Avoid cyclic dependency:
-  // TODO: Mutually trigger between ao-oss-parent and ao-ant-tasks when not triggered by the other
-  // 'parent', // <groupId>com.aoapps</groupId><artifactId>ao-oss-parent</artifactId>
+  'parent', // <groupId>com.aoapps</groupId><artifactId>ao-oss-parent</artifactId>
+  // Parent Plugin Dependencies (Avoid cyclic dependency)
+  'pgp-keys-map', // <groupId>com.aoapps</groupId><artifactId>pgp-keys-map</artifactId>
+  'javadoc-offline', // <groupId>com.aoapps</groupId><artifactId>ao-javadoc-offline</artifactId>
+  'javadoc-resources', // <groupId>com.aoapps</groupId><artifactId>ao-javadoc-resources</artifactId>
+  // Avoid cyclic dependency: 'ant-tasks', // <groupId>com.aoapps</groupId><artifactId>ao-ant-tasks</artifactId>
+  'checkstyle-config', // <groupId>com.aoapps</groupId><artifactId>ao-checkstyle-config</artifactId>
 
   // Direct
   // No Jenkins: <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
