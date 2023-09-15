@@ -93,6 +93,7 @@ public final class SeoJavadocFilter {
 
   private static final Logger logger = Logger.getLogger(SeoJavadocFilter.class.getName());
 
+  // Note: Matches semanticcms-core-servlet:SiteMapIndexServlet.java:ENCODING
   static final Charset ENCODING = StandardCharsets.UTF_8;
 
   /**

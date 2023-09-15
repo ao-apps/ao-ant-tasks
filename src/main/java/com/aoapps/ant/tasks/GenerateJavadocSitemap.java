@@ -112,6 +112,8 @@ public final class GenerateJavadocSitemap {
   /**
    * The ZIP entry containing the sitemap index.
    */
+  // Note: Matches semanticcms-core-servlet:SiteMapIndexServlet.java:SERVLET_PATH (but without slash)
+  // Note: Matches semanticcms-core-servlet:SiteMapIndexServlet.java:META_INF_SITEMAP_INDEX_NAME
   static final String SITEMAP_INDEX_NAME = "sitemap-index.xml";
 
   /**
