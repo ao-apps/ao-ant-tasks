@@ -28,6 +28,7 @@ Ant tasks used in building AO-supported projects.
 ## Features
 * Fine-grained management of last-modified times within `*.aar`, `*.jar`, `*.war`, and `*.zip` files for optimum reproducibility and publishability.
 * Generate directory-only ZIP files with a reference timestamp to be able to manipulate ZIP file structure reproducibly while also not losing per-entry timestamps.
+* SEO filter Javadocs: [Canonical URLs](https://support.google.com/webmasters/answer/139066), selective `rel="nofollow"`, and [Sitemaps](https://www.sitemaps.org/).
 
 ## Motivation
 Our immediate goal is to have efficient [sitemaps](https://www.sitemaps.org/) for generated Javadocs.  The sitemaps
