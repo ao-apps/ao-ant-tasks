@@ -39,8 +39,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipException;
@@ -239,7 +239,7 @@ public final class SeoJavadocFilter {
    *                 The new value must must be properly encoded; it will be added verbatim.
    */
   private static void insertOrUpdateHead(File javadocJar, ZipArchiveEntry zipEntry, List<String> linesWithEof,
-      String lineStart, Function<String, String> getValue, String lineEndWithEof, String msgPrefix,
+      String lineStart, UnaryOperator<String> getValue, String lineEndWithEof, String msgPrefix,
       Consumer<Supplier<String>> debug
   ) throws ZipException {
     // Find the <head> line
