@@ -462,9 +462,7 @@ public final class ZipTimestampMerge {
         buildEntryCount++;
         // Verify time
         long buildEntryTime = getTimeUtc(buildArtifact, buildEntry);
-        //debug.accept("buildEntryTime = " + new Date(buildEntryTime));
-        if (buildEntryTime != outputTimestampRounded
-            /*&& zipRoundTime(entryTime) != zipRoundTime(outputTimestampMillis)*/) {
+        if (buildEntryTime != outputTimestampRounded) {
           if (buildReproducible) {
             throw new ZipException(reproducibleLogPrefix + "Mismatched entry.time: expected " + outputTimestampRounded + " ("
                 + new Date(outputTimestampRounded) + "), got " + buildEntryTime + " (" + new Date(buildEntryTime)
