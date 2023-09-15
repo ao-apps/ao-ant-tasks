@@ -117,7 +117,7 @@ public class ZipTimestampMergeTest {
   }
 
   /**
-   * Tests {@link ZipTimestampMerge#parseArtifactId(java.lang.String)}.
+   * Tests {@link ZipTimestampMerge.Identifier#parseArtifactId(java.lang.String)}.
    */
   @Test
   @SuppressWarnings("ThrowableResultIgnored")
@@ -140,7 +140,7 @@ public class ZipTimestampMergeTest {
   }
 
   /**
-   * Tests {@link ZipTimestampMerge#parseType(java.lang.String)}.
+   * Tests {@link ZipTimestampMerge.Identifier#parseType(java.lang.String)}.
    */
   @Test
   @SuppressWarnings("ThrowableResultIgnored")
@@ -165,7 +165,7 @@ public class ZipTimestampMergeTest {
   }
 
   /**
-   * Tests {@link ZipTimestampMerge#parseClassifier(java.lang.String, java.lang.String)}.
+   * Tests {@link ZipTimestampMerge.Identifier#parseClassifier(java.lang.String, java.lang.String)}.
    */
   @Test
   @SuppressWarnings("ThrowableResultIgnored")
