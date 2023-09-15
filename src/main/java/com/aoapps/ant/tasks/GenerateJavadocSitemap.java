@@ -308,8 +308,7 @@ public final class GenerateJavadocSitemap {
       File javadocJar,
       String apidocsUrl,
       Consumer<Supplier<String>> debug,
-      Consumer<Supplier<String>> info,
-      Consumer<Supplier<String>> warn
+      Consumer<Supplier<String>> info
   ) throws IOException {
     info.accept(() -> "Generate Javadoc Sitemap processing " + javadocJar);
     // Validate
@@ -435,8 +434,7 @@ public final class GenerateJavadocSitemap {
         javadocJar,
         apidocsUrl,
         logger::fine,
-        logger::info,
-        logger::warning
+        logger::info
     );
   }
 }

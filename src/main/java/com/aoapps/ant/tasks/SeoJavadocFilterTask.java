@@ -233,8 +233,7 @@ public class SeoJavadocFilterTask extends Task {
               nofollow,
               follow,
               msg -> log(msg.get(), LogLevel.DEBUG.getLevel()),
-              msg -> log(msg.get(), LogLevel.INFO.getLevel()),
-              msg -> log(msg.get(), LogLevel.WARN.getLevel())
+              msg -> log(msg.get(), LogLevel.INFO.getLevel())
           );
           count++;
         }

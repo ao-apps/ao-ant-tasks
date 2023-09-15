@@ -448,8 +448,7 @@ public final class SeoJavadocFilter {
       Iterable<String> nofollow,
       Iterable<String> follow,
       Consumer<Supplier<String>> debug,
-      Consumer<Supplier<String>> info,
-      Consumer<Supplier<String>> warn
+      Consumer<Supplier<String>> info
   ) throws IOException {
     info.accept(() -> "SEO Javadoc filtering " + javadocJar);
     // Validate
@@ -582,8 +581,7 @@ public final class SeoJavadocFilter {
         nofollow,
         follow,
         logger::fine,
-        logger::info,
-        logger::warning
+        logger::info
     );
   }
 }

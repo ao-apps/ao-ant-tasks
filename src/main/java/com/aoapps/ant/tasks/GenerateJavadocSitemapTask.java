@@ -91,8 +91,7 @@ public class GenerateJavadocSitemapTask extends Task {
               javadocJar,
               SeoJavadocFilterTask.getApidocsUrl(javadocJar, projectUrl),
               msg -> log(msg.get(), LogLevel.DEBUG.getLevel()),
-              msg -> log(msg.get(), LogLevel.INFO.getLevel()),
-              msg -> log(msg.get(), LogLevel.WARN.getLevel())
+              msg -> log(msg.get(), LogLevel.INFO.getLevel())
           );
           count++;
         }
