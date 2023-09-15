@@ -134,46 +134,6 @@ public final class ZipTimestampMerge {
         || lowerName.endsWith(".zip");
   };
 
-  private static final Pattern ARTIFACT_ID_PATTERN = Pattern.compile("-[0-9]");
-
-  private static String parseArtifactId(String filename) throws ParseException {
-    // Take everythiing up to the first hyphen followed by a digit
-    Matcher matcher = ARTIFACT_ID_PATTERN.matcher(filename);
-    if (matcher.find()) {
-      int start = matcher.start();
-      if (start < 1) {
-        throw new ParseException("Unable to parse artifactId: " + filename, 0);
-      }
-      return filename.substring(0, start);
-    }
-    throw new ParseException("Unable to parse artifactId: " + filename, 0);
-  }
-
-  private static final Pattern TYPE_PATTERN = Pattern.compile(".*\\.([a-zA-Z]+)");
-
-  private static String parseType(String filename) throws ParseException {
-    Matcher matcher = TYPE_PATTERN.matcher(filename);
-    if (matcher.matches()) {
-      return matcher.group(1);
-    }
-    throw new ParseException("Unable to parse type: " + filename, 0);
-  }
-
-  private static final Pattern CLASSIFIER_PATTERN = Pattern.compile(".*?-([a-z-]+)");
-
-  private static String parseClassifier(String filename, String type) {
-    Objects.requireNonNull(filename);
-    Objects.requireNonNull(type);
-    assert filename.endsWith("." + type);
-    String withoutType = filename.substring(0, filename.length() - (type.length() + 1));
-    Matcher matcher = CLASSIFIER_PATTERN.matcher(withoutType);
-    if (matcher.matches()) {
-      return matcher.group(1);
-    } else {
-      return "";
-    }
-  }
-
   /**
    * Offsets a time from ZIP entry time to Java time in milliseconds since Epoch.
    */
@@ -700,6 +660,46 @@ public final class ZipTimestampMerge {
    * Artifacts are identified by {@code (artifactId, classifier, type)}.
    */
   private static final class Identifier implements Comparable<Identifier> {
+
+    private static final Pattern ARTIFACT_ID_PATTERN = Pattern.compile("-[0-9]");
+
+    private static String parseArtifactId(String filename) throws ParseException {
+      // Take everythiing up to the first hyphen followed by a digit
+      Matcher matcher = ARTIFACT_ID_PATTERN.matcher(filename);
+      if (matcher.find()) {
+        int start = matcher.start();
+        if (start < 1) {
+          throw new ParseException("Unable to parse artifactId: " + filename, 0);
+        }
+        return filename.substring(0, start);
+      }
+      throw new ParseException("Unable to parse artifactId: " + filename, 0);
+    }
+
+    private static final Pattern TYPE_PATTERN = Pattern.compile(".*\\.([a-zA-Z]+)");
+
+    private static String parseType(String filename) throws ParseException {
+      Matcher matcher = TYPE_PATTERN.matcher(filename);
+      if (matcher.matches()) {
+        return matcher.group(1);
+      }
+      throw new ParseException("Unable to parse type: " + filename, 0);
+    }
+
+    private static final Pattern CLASSIFIER_PATTERN = Pattern.compile(".*?-([a-z-]+)");
+
+    private static String parseClassifier(String filename, String type) {
+      Objects.requireNonNull(filename);
+      Objects.requireNonNull(type);
+      assert filename.endsWith("." + type);
+      String withoutType = filename.substring(0, filename.length() - (type.length() + 1));
+      Matcher matcher = CLASSIFIER_PATTERN.matcher(withoutType);
+      if (matcher.matches()) {
+        return matcher.group(1);
+      } else {
+        return "";
+      }
+    }
 
     private final String artifactId;
     private final String classifier;
