@@ -418,10 +418,8 @@ public final class ZipTimestampMerge {
       String name = entry.getName();
       if (name.startsWith(directoryName)) {
         String childName = name.substring(directoryName.length());
-        if (!childName.isEmpty() && childName.indexOf('/') == -1) {
-          if (!children.add(childName)) {
-            throw new ZipException("Duplicate child name of " + directoryName + ": " + childName);
-          }
+        if (!childName.isEmpty() && childName.indexOf('/') == -1 && !children.add(childName)) {
+          throw new ZipException("Duplicate child name of " + directoryName + ": " + childName);
         }
       }
     }
@@ -549,13 +547,12 @@ public final class ZipTimestampMerge {
                   }
                 }
                 // Ignore special case of META-INF/sitemap-index.xml not yet generated
-                if (buildEntry.getName().equals(GenerateJavadocSitemap.META_INF_DIRECTORY)) {
-                  if (removed.remove(GenerateJavadocSitemap.SITEMAP_INDEX_NAME)) {
-                    debug.accept(() -> "Ignoring missing " + GenerateJavadocSitemap.META_INF_DIRECTORY
-                        + GenerateJavadocSitemap.SITEMAP_INDEX_NAME
-                        + " in order to not unnecessarily update timestamp of "
-                        + GenerateJavadocSitemap.META_INF_DIRECTORY);
-                  }
+                if (buildEntry.getName().equals(GenerateJavadocSitemap.META_INF_DIRECTORY)
+                    && removed.remove(GenerateJavadocSitemap.SITEMAP_INDEX_NAME)) {
+                  debug.accept(() -> "Ignoring missing " + GenerateJavadocSitemap.META_INF_DIRECTORY
+                      + GenerateJavadocSitemap.SITEMAP_INDEX_NAME
+                      + " in order to not unnecessarily update timestamp of "
+                      + GenerateJavadocSitemap.META_INF_DIRECTORY);
                 }
                 updated = !added.isEmpty() || !removed.isEmpty();
                 if (updated) {
