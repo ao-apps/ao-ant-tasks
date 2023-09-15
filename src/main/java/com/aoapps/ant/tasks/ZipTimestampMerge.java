@@ -30,7 +30,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -94,6 +93,7 @@ public final class ZipTimestampMerge {
 
   private static final int LOCAL_TIME_OFFSET = 0x0a;
 
+  private static final byte[] END_OF_DIRECTORY_SIGNATURE = {0x50, 0x4b, 0x05, 0x06};
   private static final byte[] CENTRAL_HEADER_SIGNATURE = {0x50, 0x4b, 0x01, 0x02};
   private static final byte[] END_CENTRAL_HEADER_SIGNATURE = {0x50, 0x4b, 0x05, 0x06};
   private static final int CENTRAL_HEADER_LEN = 0x2e - CENTRAL_HEADER_SIGNATURE.length;
@@ -103,6 +103,7 @@ public final class ZipTimestampMerge {
   private static final int CENTRAL_HEADER_LOCAL_HEADER_OFFSET = 0x2a - CENTRAL_HEADER_SIGNATURE.length;
 
   static {
+    assert END_OF_DIRECTORY_SIGNATURE.length == CENTRAL_HEADER_SIGNATURE.length;
     assert CENTRAL_HEADER_SIGNATURE.length == END_CENTRAL_HEADER_SIGNATURE.length;
   }
 
@@ -226,27 +227,44 @@ public final class ZipTimestampMerge {
     return dosTimeDate;
   }
 
-  private static final Field zipFileCentralDirectoryStartOffset;
+  private static final int EOCD_MIN_LENGTH = 22;
 
-  static {
-    try {
-      // TODO: Accessing centralDirectoryStartOffset via reflection is a hack to avoid writing our own parser
-      Field centralDirectoryStartOffset = ZipFile.class.getDeclaredField("centralDirectoryStartOffset");
-      centralDirectoryStartOffset.setAccessible(true);
-      zipFileCentralDirectoryStartOffset = centralDirectoryStartOffset;
-    } catch (NoSuchFieldException e) {
-      throw new ExceptionInInitializerError(e);
+  private static long getCentralDirectoryStartOffset(File buildArtifact, RandomAccessFile buildArtifactRaf,
+      ZipFile zipFile, Consumer<Supplier<String>> debug) throws IOException {
+    // See https://en.wikipedia.org/wiki/ZIP_(file_format)
+    // See https://stackoverflow.com/a/4802165/7121505
+    // Read backward to find end-of-directory 0x06054b50
+    byte[] wordBuff = new byte[4];
+    long pos = buildArtifactRaf.length() - EOCD_MIN_LENGTH;
+    long centralDirectoryStartOffset = -1;
+    while (pos >= 0) {
+      buildArtifactRaf.seek(pos);
+      buildArtifactRaf.readFully(wordBuff);
+      if (Arrays.equals(wordBuff, END_OF_DIRECTORY_SIGNATURE)) {
+        final long posFinal = pos;
+        debug.accept(() -> "End of central directory record found @ 0x" + Long.toHexString(posFinal));
+        long centralDirectoryOffsetPos = pos + 0x10;
+        buildArtifactRaf.seek(centralDirectoryOffsetPos);
+        buildArtifactRaf.readFully(wordBuff);
+        long centralDirectoryOffset = getZipWord(wordBuff, 0);
+        debug.accept(() -> "centralDirectoryOffset = 0x" + Long.toHexString(centralDirectoryOffset));
+        if (centralDirectoryOffset < 0) {
+          throw new ZipException("Invalid central directory offset: " + centralDirectoryOffset);
+        }
+        if (centralDirectoryOffset == 0xffffffffL) {
+          throw new ZipException("ZIP64 not implemented: " + buildArtifact + AT
+              + " 0x" + Long.toHexString(centralDirectoryOffsetPos));
+        }
+        centralDirectoryStartOffset = centralDirectoryOffset + zipFile.getFirstLocalFileHeaderOffset();
+        break;
+      } else {
+        pos--;
+      }
     }
-  }
-
-  private static long getCentralDirectoryStartOffset(ZipFile zipFile) throws ZipException {
-    try {
-      return zipFileCentralDirectoryStartOffset.getLong(zipFile);
-    } catch (IllegalAccessException e) {
-      ZipException zipExc = new ZipException();
-      zipExc.initCause(e);
-      throw zipExc;
+    if (centralDirectoryStartOffset == -1) {
+      throw new ZipException("Central directory not found in " + buildArtifact);
     }
+    return centralDirectoryStartOffset;
   }
 
   private static final class CentralDirectoryEntry {
@@ -265,11 +283,11 @@ public final class ZipTimestampMerge {
    */
   private static SortedMap<Long, CentralDirectoryEntry> readCentralDirectory(Consumer<Supplier<String>> debug,
       File buildArtifact, ZipFile buildZipFile) throws IOException {
-    long centralDirectoryStartOffset = getCentralDirectoryStartOffset(buildZipFile);
-    debug.accept(() -> "centralDirectoryStartOffset = 0x" + Long.toHexString(centralDirectoryStartOffset));
     SortedMap<Long, CentralDirectoryEntry> map = new TreeMap<>();
     debug.accept(() -> "Opening buildArtifactRaf: " + buildArtifact);
     try (RandomAccessFile buildArtifactRaf = new RandomAccessFile(buildArtifact, "r")) {
+      long centralDirectoryStartOffset = getCentralDirectoryStartOffset(buildArtifact, buildArtifactRaf, buildZipFile, debug);
+      debug.accept(() -> "centralDirectoryStartOffset = 0x" + Long.toHexString(centralDirectoryStartOffset));
       buildArtifactRaf.seek(centralDirectoryStartOffset);
       byte[] signature = new byte[CENTRAL_HEADER_SIGNATURE.length];
       byte[] centralDirectoryHeader = new byte[CENTRAL_HEADER_LEN];
@@ -311,7 +329,8 @@ public final class ZipTimestampMerge {
         debug.accept(() -> "signature @ 0x" + Long.toHexString(sigPos) + " is " + bytesToHex(signature));
       }
       if (!Arrays.equals(signature, END_CENTRAL_HEADER_SIGNATURE)) {
-        throw new ZipException("sig is not END_SIG: " + bytesToHex(signature));
+        throw new ZipException("signature is not END_CENTRAL_HEADER_SIGNATURE: " + bytesToHex(signature)
+            + " != " + bytesToHex(END_CENTRAL_HEADER_SIGNATURE));
       }
     }
     return map;
