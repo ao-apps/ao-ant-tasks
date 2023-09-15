@@ -124,7 +124,7 @@ public final class GenerateJavadocSitemap {
     private final String entryName;
     private final long entryTime;
 
-    private SitemapPath(String entryName, long entryTime) throws ZipException {
+    private SitemapPath(String entryName, long entryTime) {
       this.entryName = entryName;
       if (entryTime == -1) {
         throw new IllegalArgumentException("entryTime == -1");

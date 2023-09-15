@@ -357,7 +357,7 @@ public final class ZipTimestampMerge {
   private static void addTimePatches(List<Patch> patches,
       SortedMap<Long, CentralDirectoryEntry> centralDirectory, ZipArchiveEntry buildEntry,
       long buildEntryTime, long newTime
-  ) throws ZipException, IOException {
+  ) throws IOException {
     if (buildEntryTime == newTime) {
       throw new IllegalArgumentException("Times equal, nothing to patch for " + buildEntry);
     }
@@ -681,7 +681,7 @@ public final class ZipTimestampMerge {
       boolean buildReproducible,
       File lastBuildArtifact,
       File buildArtifact
-  ) throws IOException, ParseException {
+  ) throws IOException {
     ZipTimestampMerge.mergeFile(
         System.currentTimeMillis(),
         outputTimestamp,
