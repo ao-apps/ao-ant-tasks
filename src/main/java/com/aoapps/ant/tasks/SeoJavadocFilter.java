@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -516,8 +517,9 @@ public final class SeoJavadocFilter {
                         return apidocsUrlWithSlash + currentValue;
                       }
                     } else {
-                      throw new RuntimeException("Unexpected ZIP entry with non-default canonical URL: \""
-                          + currentValue + '"' + AT + javadocJar + AT + zipEntryName);
+                      throw new UncheckedIOException(new ZipException(
+                          "Unexpected ZIP entry with non-default canonical URL: \"" + currentValue + '"' + AT
+                              + javadocJar + AT + zipEntryName));
                     }
                   }, CANONICAL_SUFFIX, "Canonical URL: ", debug);
               // Determine the robots header value

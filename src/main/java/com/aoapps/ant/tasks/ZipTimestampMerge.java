@@ -240,11 +240,13 @@ public final class ZipTimestampMerge {
     }
   }
 
-  private static long getCentralDirectoryStartOffset(ZipFile zipFile) {
+  private static long getCentralDirectoryStartOffset(ZipFile zipFile) throws ZipException {
     try {
       return zipFileCentralDirectoryStartOffset.getLong(zipFile);
     } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
+      ZipException zipExc = new ZipException();
+      zipExc.initCause(e);
+      throw zipExc;
     }
   }
 
