@@ -269,6 +269,7 @@ public final class SeoJavadocFilter {
         } else if (newValue == null) {
           debug.accept(() -> msgPrefix + "Removing old value: " + currentValue);
           linesWithEof.remove(lineIndex);
+          lineIndex--;
           headEndIndex--;
         } else {
           debug.accept(() -> msgPrefix + "Replacing existing value: " + currentValue + " to " + newValue);
