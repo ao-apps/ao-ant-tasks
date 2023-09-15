@@ -23,6 +23,8 @@
 
 package com.aoapps.ant.tasks;
 
+import static com.aoapps.ant.tasks.SeoJavadocFilter.AT;
+import static com.aoapps.ant.tasks.SeoJavadocFilter.AT_LINE;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.ENCODING;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.FILTER_EXTENSION;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.HEAD_ELEM_END;
@@ -260,16 +262,16 @@ public final class GenerateJavadocSitemap {
     // Find the <head> line
     int headStartIndex = linesWithEof.indexOf(HEAD_ELEM_START);
     if (headStartIndex == -1) {
-      throw new ZipException(HEAD_ELEM_START.trim() + " not found: " + javadocJar + " @ " + zipEntry);
+      throw new ZipException(HEAD_ELEM_START.trim() + " not found: " + javadocJar + AT + zipEntry);
     }
     // Find the </head> line
     int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
     if (headEndIndex == -1) {
-      throw new ZipException(HEAD_ELEM_END.trim() + " not found: " + javadocJar + " @ " + zipEntry);
+      throw new ZipException(HEAD_ELEM_END.trim() + " not found: " + javadocJar + AT + zipEntry);
     }
     if (headEndIndex < headStartIndex) {
       throw new ZipException(HEAD_ELEM_END.trim() + " before " + HEAD_ELEM_START.trim() + ": "
-          + javadocJar + " @ " + zipEntry);
+          + javadocJar + AT + zipEntry);
     }
     // Search for line with robots meta
     int finishedIndex = -1;
@@ -278,12 +280,12 @@ public final class GenerateJavadocSitemap {
       String lineWithEof = linesWithEof.get(lineIndex);
       if (lineWithEof.startsWith(ROBOTS_PREFIX)) {
         if (finishedIndex != -1) {
-          throw new ZipException("duplicate element detected " + javadocJar + " @ " + zipEntry
+          throw new ZipException("duplicate element detected " + javadocJar + AT + zipEntry
               + " @ lines " + (finishedIndex + 1) + " and " + (lineIndex + 1));
         }
         if (!lineWithEof.endsWith(ROBOTS_SUFFIX)) {
           throw new ZipException("Expected line ending (" + ROBOTS_SUFFIX.trim() + ") missing: "
-              + javadocJar + " @ " + zipEntry + " @ line " + (lineIndex + 1));
+              + javadocJar + AT + zipEntry + AT_LINE + (lineIndex + 1));
         }
         String currentValue = lineWithEof.substring(ROBOTS_PREFIX.length(),
             lineWithEof.length() - ROBOTS_SUFFIX.length());
@@ -345,7 +347,7 @@ public final class GenerateJavadocSitemap {
             // Require times on all entries
             long zipEntryTime = zipEntry.getTime();
             if (zipEntryTime == -1) {
-              throw new ZipException("No time in entry: " + javadocJar + " @ " + zipEntryName);
+              throw new ZipException("No time in entry: " + javadocJar + AT + zipEntryName);
             }
             if (zipEntryName.equals(SITEMAP_NAME) || zipEntryName.equals(META_INF_DIRECTORY + SITEMAP_INDEX_NAME)) {
               // Drop any existing sitemaps

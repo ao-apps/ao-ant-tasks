@@ -23,6 +23,8 @@
 
 package com.aoapps.ant.tasks;
 
+import static com.aoapps.ant.tasks.SeoJavadocFilter.AT;
+
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -127,11 +129,11 @@ public class CreateZippedDirectoriesTask extends Task {
       try (ZipFile referenceZipFile = new ZipFile(referenceZip)) {
         ZipArchiveEntry referenceEntry = referenceZipFile.getEntry(referencePath);
         if (referenceEntry == null) {
-          throw new BuildException("reference entry not found: " + referenceZip + " @ " + referencePath);
+          throw new BuildException("reference entry not found: " + referenceZip + AT + referencePath);
         }
         referenceTime = referenceEntry.getTime();
         if (referenceTime == -1) {
-          throw new BuildException("reference entry does not have any timestamp: " + referenceZip + " @ " + referencePath);
+          throw new BuildException("reference entry does not have any timestamp: " + referenceZip + AT + referencePath);
         }
       }
       FileUtils.forceMkdirParent(generateZip);

@@ -145,6 +145,14 @@ public final class SeoJavadocFilter {
    */
   private static final Pattern SCHEME_PATTERN = Pattern.compile("[a-zA-Z][a-zA-Z0-9+.-]*:.*");
 
+  static final String AT = " @ ";
+
+  static final String AT_LINE = " @ line ";
+
+  private static final String INDEX_HTML = "index.html";
+
+  private static final String OVERVIEW_SUMMARY_HTML = "overview-summary.html";
+
   /**
    * Determines the robots header value.
    *
@@ -164,8 +172,8 @@ public final class SeoJavadocFilter {
     ) {
       return NOINDEX_NOFOLLOW;
     } else if (
-        name.equalsIgnoreCase("index.html")
-        || name.equalsIgnoreCase("overview-summary.html")
+        name.equalsIgnoreCase(INDEX_HTML)
+        || name.equalsIgnoreCase(OVERVIEW_SUMMARY_HTML)
     ) {
       boolean hasRefresh = linesWithEof.stream()
           .anyMatch(line -> line.startsWith("<meta http-equiv=\"Refresh\" content=\"0;"));
@@ -174,23 +182,23 @@ public final class SeoJavadocFilter {
       if (hasRefresh != hasRedirectClass) {
         if (!hasRedirectClass) {
           throw new ZipException("Entry has refresh meta but does not have redirect body class: "
-              + javadocJar + " @ " + name);
+              + javadocJar + AT + name);
         } else {
           throw new ZipException("Entry has redirect body class but does not have refresh meta: "
-              + javadocJar + " @ " + name);
+              + javadocJar + AT + name);
         }
       }
       if (hasRefresh) {
         return NOINDEX_FOLLOW;
-      } else if (name.equalsIgnoreCase("index.html")) {
+      } else if (name.equalsIgnoreCase(INDEX_HTML)) {
         int bodyElemPos = linesWithEof.indexOf("<body class=\"package-index-page\">" + NL);
         if (bodyElemPos == -1) {
           throw new ZipException("Entry has neither \"index-redirect-page\" body class nor \"package-index-page\": "
-              + javadocJar + " @ " + name);
+              + javadocJar + AT + name);
         }
         return null;
-      } else if (name.equalsIgnoreCase("overview-summary.html")) {
-        throw new ZipException("Entry is only expected to be a redirect page: " + javadocJar + " @ " + name);
+      } else if (name.equalsIgnoreCase(OVERVIEW_SUMMARY_HTML)) {
+        throw new ZipException("Entry is only expected to be a redirect page: " + javadocJar + AT + name);
       } else {
         throw new AssertionError("Unexpected name: " + name);
       }
@@ -209,8 +217,8 @@ public final class SeoJavadocFilter {
     while ((ch = in.read()) != -1) {
       // Make sure only Unix newlines
       if (ch == '\r') {
-        throw new ZipException("Carriage return in javadocs, requiring Unix newlines only: " + javadocJar + " @ "
-            + zipEntryName + " @ line " + (linesWithEof.size() + 1));
+        throw new ZipException("Carriage return in javadocs, requiring Unix newlines only: " + javadocJar + AT
+            + zipEntryName + AT_LINE + (linesWithEof.size() + 1));
       }
       lineSb.append((char) ch);
       if (ch == NL) {
@@ -237,16 +245,16 @@ public final class SeoJavadocFilter {
     // Find the <head> line
     int headStartIndex = linesWithEof.indexOf(HEAD_ELEM_START);
     if (headStartIndex == -1) {
-      throw new ZipException(msgPrefix + HEAD_ELEM_START.trim() + " not found: " + javadocJar + " @ " + zipEntry);
+      throw new ZipException(msgPrefix + HEAD_ELEM_START.trim() + " not found: " + javadocJar + AT + zipEntry);
     }
     // Find the </head> line
     int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
     if (headEndIndex == -1) {
-      throw new ZipException(msgPrefix + HEAD_ELEM_END.trim() + " not found: " + javadocJar + " @ " + zipEntry);
+      throw new ZipException(msgPrefix + HEAD_ELEM_END.trim() + " not found: " + javadocJar + AT + zipEntry);
     }
     if (headEndIndex < headStartIndex) {
       throw new ZipException(msgPrefix + HEAD_ELEM_END.trim() + " before " + HEAD_ELEM_START.trim() + ": "
-          + javadocJar + " @ " + zipEntry);
+          + javadocJar + AT + zipEntry);
     }
     // Search for existing line to update
     int finishedIndex = -1;
@@ -254,12 +262,12 @@ public final class SeoJavadocFilter {
       String lineWithEof = linesWithEof.get(lineIndex);
       if (lineWithEof.startsWith(lineStart)) {
         if (finishedIndex != -1) {
-          throw new ZipException(msgPrefix + "duplicate element detected " + javadocJar + " @ " + zipEntry
+          throw new ZipException(msgPrefix + "duplicate element detected " + javadocJar + AT + zipEntry
               + " @ lines " + (finishedIndex + 1) + " and " + (lineIndex + 1));
         }
         if (!lineWithEof.endsWith(lineEndWithEof)) {
           throw new ZipException(msgPrefix + "Expected line ending (" + lineEndWithEof.trim() + ") missing: "
-              + javadocJar + " @ " + zipEntry + " @ line " + (lineIndex + 1));
+              + javadocJar + AT + zipEntry + AT_LINE + (lineIndex + 1));
         }
         String currentValue = lineWithEof.substring(lineStart.length(),
             lineWithEof.length() - lineEndWithEof.length());
@@ -294,27 +302,27 @@ public final class SeoJavadocFilter {
     // Find the </head> line
     int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
     if (headEndIndex == -1) {
-      throw new ZipException(HEAD_ELEM_END.trim() + " not found: " + javadocJar + " @ " + zipEntry);
+      throw new ZipException(HEAD_ELEM_END.trim() + " not found: " + javadocJar + AT + zipEntry);
     }
-    debug.accept(() -> "Filtering links in " + javadocJar + " @ " + zipEntry);
+    debug.accept(() -> "Filtering links in " + javadocJar + AT + zipEntry);
     for (int lineIndex = headEndIndex + 1; lineIndex < linesWithEof.size(); lineIndex++) {
       String line = linesWithEof.get(lineIndex);
       // Do not allow capital links
       int capitalStart = line.indexOf("<A ");
       if (capitalStart != -1) {
-        throw new ZipException("Unexpected capitalized \"<A \" found: " + javadocJar + " @ " + zipEntry + " @ line "
+        throw new ZipException("Unexpected capitalized \"<A \" found: " + javadocJar + AT + zipEntry + AT_LINE
             + (lineIndex + 1));
       }
       // Do not allow single-quoted href
       int singleQuotedStart = line.indexOf("href='");
       if (singleQuotedStart != -1) {
-        throw new ZipException("Unexpected single-quoted \"href='\" found: " + javadocJar + " @ " + zipEntry + " @ line "
+        throw new ZipException("Unexpected single-quoted \"href='\" found: " + javadocJar + AT + zipEntry + AT_LINE
             + (lineIndex + 1));
       }
       // Do not allow single-quoted rel
       singleQuotedStart = line.indexOf("rel='");
       if (singleQuotedStart != -1) {
-        throw new ZipException("Unexpected single-quoted \"rel='\" found: " + javadocJar + " @ " + zipEntry + " @ line "
+        throw new ZipException("Unexpected single-quoted \"rel='\" found: " + javadocJar + AT + zipEntry + AT_LINE
             + (lineIndex + 1));
       }
       StringBuilder newLine = new StringBuilder();
@@ -330,20 +338,20 @@ public final class SeoJavadocFilter {
           // This assumes no > inside any quotes
           int linkEnd = line.indexOf('>', linkStart + linkStartValue.length());
           if (linkEnd == -1) {
-            throw new ZipException("Link end not found: " + javadocJar + " @ " + zipEntry + " @ line "
+            throw new ZipException("Link end not found: " + javadocJar + AT + zipEntry + AT_LINE
                 + (lineIndex + 1));
           }
           // Find href=", but must be before linkEnd
           String hrefStr = " href=\"";
           int hrefPos = line.indexOf(hrefStr, linkStart);
           if (hrefPos == -1 || hrefPos >= linkEnd) {
-            throw new ZipException("Link without href: " + javadocJar + " @ " + zipEntry + " @ line "
+            throw new ZipException("Link without href: " + javadocJar + AT + zipEntry + AT_LINE
                 + (lineIndex + 1));
           }
           // Find closing quote, but must before linkEnd
           int hrefClosePos = line.indexOf('"', hrefPos + hrefStr.length());
           if (hrefClosePos == -1 || hrefClosePos >= linkEnd) {
-            throw new ZipException("href without closing quote: " + javadocJar + " @ " + zipEntry + " @ line "
+            throw new ZipException("href without closing quote: " + javadocJar + AT + zipEntry + AT_LINE
                 + (lineIndex + 1));
           }
           String hrefValue = line.substring(hrefPos + hrefStr.length(), hrefClosePos);
@@ -360,7 +368,7 @@ public final class SeoJavadocFilter {
             // Find closing quote, but must before linkEnd
             relClosePos = line.indexOf('"', relPos + relStr.length());
             if (relClosePos == -1 || relClosePos >= linkEnd) {
-              throw new ZipException("rel without closing quote: " + javadocJar + " @ " + zipEntry + " @ line "
+              throw new ZipException("rel without closing quote: " + javadocJar + AT + zipEntry + AT_LINE
                   + (lineIndex + 1));
             }
             relValue = line.substring(relPos + relStr.length(), relClosePos);
@@ -391,8 +399,8 @@ public final class SeoJavadocFilter {
                   }
                 }
                 if (expectedRel == null) {
-                  throw new ZipException("URL not matched in any nofollow or follow prefix: " + javadocJar + " @ "
-                      + zipEntry + " @ line " + (lineIndex + 1) + " href = " + hrefValue);
+                  throw new ZipException("URL not matched in any nofollow or follow prefix: " + javadocJar + AT
+                      + zipEntry + AT_LINE + (lineIndex + 1) + " href = " + hrefValue);
                 }
               }
             }
@@ -479,7 +487,7 @@ public final class SeoJavadocFilter {
             // Require times on all entries
             long zipEntryTime = zipEntry.getTime();
             if (zipEntryTime == -1) {
-              throw new ZipException("No time in entry: " + javadocJar + " @ " + zipEntryName);
+              throw new ZipException("No time in entry: " + javadocJar + AT + zipEntryName);
             }
             // Anything not ending in *.html (which will include directories), just copy verbatim
             if (!StringUtils.endsWithIgnoreCase(zipEntryName, FILTER_EXTENSION)) {
@@ -501,8 +509,8 @@ public final class SeoJavadocFilter {
                     String expectedNonIndex = StringEscapeUtils.escapeHtml4(apidocsUrlWithSlash + zipEntryName);
                     if (currentValue == null || currentValue.equals(expectedNonIndex)) {
                       return expectedNonIndex;
-                    } else if (zipEntryName.equals("index.html")
-                        || zipEntryName.equals("overview-summary.html")) {
+                    } else if (zipEntryName.equals(INDEX_HTML)
+                        || zipEntryName.equals(OVERVIEW_SUMMARY_HTML)) {
                       if (currentValue.startsWith(apidocsUrlWithSlash)) {
                         return currentValue;
                       } else {
@@ -510,7 +518,7 @@ public final class SeoJavadocFilter {
                       }
                     } else {
                       throw new RuntimeException("Unexpected ZIP entry with non-default canonical URL: \""
-                          + currentValue + "\" @ " + javadocJar + " @ " + zipEntryName);
+                          + currentValue + '"' + AT + javadocJar + AT + zipEntryName);
                     }
                   }, CANONICAL_SUFFIX, "Canonical URL: ", debug);
               // Determine the robots header value

@@ -23,6 +23,8 @@
 
 package com.aoapps.ant.tasks;
 
+import static com.aoapps.ant.tasks.SeoJavadocFilter.AT;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -508,7 +510,7 @@ public final class ZipTimestampMerge {
           if (buildReproducible) {
             throw new ZipException(reproducibleLogPrefix + "Mismatched entry.time: expected " + outputTimestampRounded + " ("
                 + new Date(outputTimestampRounded) + "), got " + buildEntryTime + " (" + new Date(buildEntryTime)
-                + ") on ZIP entry: " + buildArtifact + " @ " + buildEntry.getName());
+                + ") on ZIP entry: " + buildArtifact + AT + buildEntry.getName());
           } else {
             // Patch
             addTimePatches(patches, centralDirectory, buildEntry, buildEntryTime, outputTimestampMillis);
@@ -519,7 +521,7 @@ public final class ZipTimestampMerge {
           if (extraField.getHeaderId() == X5455_ExtendedTimestamp.HEADER_ID) {
             assert extraField instanceof X5455_ExtendedTimestamp;
             throw new ZipException("X5455_ExtendedTimestamp patching not implemented: "
-                + buildArtifact + " @ " + buildEntry.getName());
+                + buildArtifact + AT + buildEntry.getName());
           }
         }
       }
