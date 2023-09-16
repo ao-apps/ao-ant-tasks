@@ -61,6 +61,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.archivers.zip.ZipLong;
 import org.apache.commons.compress.archivers.zip.ZipUtil;
 import org.apache.commons.compress.utils.ByteUtils;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Standalone implementation of ZIP-file timestamp merging.
@@ -166,30 +167,6 @@ public final class ZipTimestampMerge {
    */
   private static long roundDownDosTime(long millis) {
     return Math.floorDiv(millis, 2000) * 2000;
-  }
-
-  /**
-   * Checks if two streams are byte-for-byte compatible.
-   * Simply checks one byte at a time, caller should buffer as-needed.
-   */
-  private static boolean streamsMatch(InputStream in1, InputStream in2, byte[] buff1, byte[] buff2) throws IOException {
-    if (buff1.length != buff2.length) {
-      throw new IllegalArgumentException("Mismatched buffer sizes");
-    }
-    while (true) {
-      int bytes1 = in1.read(buff1);
-      if (bytes1 == -1) {
-        return in2.read() == -1;
-      }
-      int bytes2 = in2.readNBytes(buff2, 0, bytes1);
-      if (bytes1 != bytes2) {
-        assert in2.read() == -1 : "in2 is at end of file";
-        return false;
-      }
-      if (!Arrays.equals(buff1, 0, bytes1, buff2, 0, bytes1)) {
-        return false;
-      }
-    }
   }
 
   /**
@@ -513,8 +490,6 @@ public final class ZipTimestampMerge {
     try (ZipFile buildZipFile = new ZipFile(buildArtifact)) {
       debug.accept(() -> "Reading lastBuildArtifact: " + lastBuildArtifact);
       try (ZipFile lastBuildZipFile = new ZipFile(lastBuildArtifact)) {
-        byte[] buff1 = new byte[BUFFER_SIZE];
-        byte[] buff2 = new byte[BUFFER_SIZE];
         Enumeration<ZipArchiveEntry> buildEntries = buildZipFile.getEntriesInPhysicalOrder();
         SortedMap<Long, CentralDirectoryEntry> centralDirectory =
             readCentralDirectory(debug, buildArtifact, buildZipFile);
@@ -596,7 +571,7 @@ public final class ZipTimestampMerge {
                 try (
                     InputStream buildInput = buildZipFile.getRawInputStream(buildEntry);
                     InputStream lastBuildInput = lastBuildZipFile.getRawInputStream(lastBuildEntry)) {
-                  contentMatches = streamsMatch(buildInput, lastBuildInput, buff1, buff2);
+                  contentMatches = IOUtils.contentEquals(buildInput, lastBuildInput);
                 }
               } else {
                 contentMatches = false;
@@ -607,7 +582,7 @@ public final class ZipTimestampMerge {
                 try (
                     InputStream buildInput = buildZipFile.getInputStream(buildEntry);
                     InputStream lastBuildInput = lastBuildZipFile.getInputStream(lastBuildEntry)) {
-                  contentMatches = streamsMatch(buildInput, lastBuildInput, buff1, buff2);
+                  contentMatches = IOUtils.contentEquals(buildInput, lastBuildInput);
                 }
               }
               updated = !contentMatches;
