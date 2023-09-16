@@ -328,11 +328,12 @@ public final class GenerateJavadocSitemap {
       apidocsUrlWithSlash = apidocsUrl;
     }
     File tmpFile = File.createTempFile(javadocJar.getName() + "-", ".jar", javadocJar.getParentFile());
-    try (Closeable c = () -> {
+    Closeable deleteTmpFile = () -> {
       if (tmpFile.exists()) {
         FileUtils.delete(tmpFile);
       }
-    }) {
+    };
+    try (deleteTmpFile) {
       debug.accept(() -> "Writing temp file " + tmpFile);
       try (ZipArchiveOutputStream tmpZipOut = new ZipArchiveOutputStream(tmpFile)) {
         debug.accept(() -> "Reading " + javadocJar);

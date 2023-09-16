@@ -239,6 +239,7 @@ public final class SeoJavadocFilter {
    * @param getValue from current value (which may be {@code null}) to new value (which may be {@code null}).
    *                 The new value must must be properly encoded; it will be added verbatim.
    */
+  @SuppressWarnings("AssignmentToForLoopParameter")
   private static void insertOrUpdateHead(File javadocJar, ZipArchiveEntry zipEntry, List<String> linesWithEof,
       String lineStart, UnaryOperator<String> getValue, String lineEndWithEof, String msgPrefix,
       Consumer<Supplier<String>> debug
@@ -470,11 +471,12 @@ public final class SeoJavadocFilter {
     Objects.requireNonNull(nofollow, "nofollow required");
     Objects.requireNonNull(follow, "follow required");
     File tmpFile = File.createTempFile(javadocJar.getName() + "-", ".jar", javadocJar.getParentFile());
-    try (Closeable c = () -> {
+    Closeable deleteTmpFile = () -> {
       if (tmpFile.exists()) {
         FileUtils.delete(tmpFile);
       }
-    }) {
+    };
+    try (deleteTmpFile) {
       debug.accept(() -> "Writing temp file " + tmpFile);
       try (ZipArchiveOutputStream tmpZipOut = new ZipArchiveOutputStream(tmpFile)) {
         debug.accept(() -> "Reading " + javadocJar);
