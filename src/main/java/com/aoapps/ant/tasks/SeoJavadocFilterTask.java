@@ -85,15 +85,15 @@ public class SeoJavadocFilterTask extends Task {
   );
 
   /**
-   * Default nofollows for {@link #DEFAULT}.
+   * Default nofollow for {@link #DEFAULT}.
    */
-  private static final List<String> defaultNofollows;
+  private static final List<String> defaultNofollow;
 
   static {
     int size = javaseUrlPrefixes.size() + javaeeUrlPrefixes.size();
-    defaultNofollows = new ArrayList<>(size);
-    defaultNofollows.addAll(javaseUrlPrefixes);
-    defaultNofollows.addAll(javaeeUrlPrefixes);
+    defaultNofollow = new ArrayList<>(size);
+    defaultNofollow.addAll(javaseUrlPrefixes);
+    defaultNofollow.addAll(javaeeUrlPrefixes);
     assert javaseUrlPrefixes.size() == size;
   }
 
@@ -104,7 +104,7 @@ public class SeoJavadocFilterTask extends Task {
 
   private File buildDirectory;
   private String projectUrl;
-  private Iterable<String> nofollow = defaultNofollows;
+  private Iterable<String> nofollow = defaultNofollow;
   private Iterable<String> follow = Collections.singletonList(SeoJavadocFilter.ANY_URL);
 
   /**
@@ -136,7 +136,7 @@ public class SeoJavadocFilterTask extends Task {
   /**
    * The comma/whitespace separated list of URL prefixes (case-insensitive) to set as
    * <code>rel="nofollow"</code>. May use {@link SeoJavadocFilter#ANY_URL} to match all.
-   * Nofollows are matched before {@linkplain #setFollow(java.lang.String) follows}.
+   * Nofollow are matched before {@linkplain #setFollow(java.lang.String) follow}.
    * <p>
    * If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
    * for those who want to ensure every URL is considered.
@@ -154,7 +154,7 @@ public class SeoJavadocFilterTask extends Task {
     Set<String> nofollowPrefixes = new LinkedHashSet<>();
     for (String value : nofollow.split("[\\s,]+")) {
       if (DEFAULT.equalsIgnoreCase(value)) {
-        nofollowPrefixes.addAll(defaultNofollows);
+        nofollowPrefixes.addAll(defaultNofollow);
       } else if (JAVASE.equalsIgnoreCase(value)) {
         nofollowPrefixes.addAll(javaseUrlPrefixes);
       } else if (JAVAEE.equalsIgnoreCase(value) || JAKARTAEE.equalsIgnoreCase(value)) {
@@ -169,7 +169,7 @@ public class SeoJavadocFilterTask extends Task {
   /**
    * The comma/whitespace separated list of URL prefixes (case-insensitive) to <strong>not</strong> set as
    * <code>rel="nofollow"</code>. May use {@link SeoJavadocFilter#ANY_URL} to match all.
-   * Follows are matched after {@linkplain #setNofollow(java.lang.String) nofollows}.
+   * Follow are matched after {@linkplain #setNofollow(java.lang.String) nofollow}.
    * <p>
    * If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
    * for those who want to ensure every URL is considered.
