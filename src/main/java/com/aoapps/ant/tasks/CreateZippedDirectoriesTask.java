@@ -125,13 +125,13 @@ public class CreateZippedDirectoriesTask extends Task {
     }
     try {
       // Only getting and copying - no need for any UTC timestamp conversions
-      long referenceTime;
+      ZipArchiveEntry referenceEntry;
       try (ZipFile referenceZipFile = new ZipFile(referenceZip)) {
-        ZipArchiveEntry referenceEntry = referenceZipFile.getEntry(referencePath);
+        referenceEntry = referenceZipFile.getEntry(referencePath);
         if (referenceEntry == null) {
           throw new BuildException("reference entry not found: " + referenceZip + AT + referencePath);
         }
-        referenceTime = referenceEntry.getTime();
+        long referenceTime = referenceEntry.getTime();
         if (referenceTime == -1) {
           throw new BuildException("reference entry does not have any timestamp: " + referenceZip + AT + referencePath);
         }
@@ -146,7 +146,8 @@ public class CreateZippedDirectoriesTask extends Task {
           slashPos = generatePath.indexOf('/', slashPos + 1);
           assert slashPos != -1;
           ZipArchiveEntry newEntry = new ZipArchiveEntry(generatePath.substring(0, slashPos + 1));
-          newEntry.setTime(referenceTime);
+          GenerateJavadocSitemap.copyZipMeta(referenceEntry, newEntry);
+          newEntry.setTime(referenceEntry.getTime());
           generatedZipOut.putArchiveEntry(newEntry);
           generatedZipOut.closeArchiveEntry();
         }

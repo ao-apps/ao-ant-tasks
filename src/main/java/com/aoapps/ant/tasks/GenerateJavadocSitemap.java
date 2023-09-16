@@ -230,11 +230,12 @@ public final class GenerateJavadocSitemap {
 
   /**
    * Copies some zip meta information from one entry to another.
+   * Does not copy any timestamps.
    *
    * @see  ZipArchiveEntry#ZipArchiveEntry(java.util.zip.ZipEntry)
    * @see  ZipArchiveEntry#ZipArchiveEntry(org.apache.commons.compress.archivers.zip.ZipArchiveEntry)
    */
-  private static void copyZipMeta(ZipArchiveEntry from, ZipArchiveEntry to) throws ZipException {
+  static void copyZipMeta(ZipArchiveEntry from, ZipArchiveEntry to) throws ZipException {
     // ZipArchiveEntry#ZipArchiveEntry(java.util.zip.ZipEntry)
     final byte[] extra = from.getExtra();
     if (extra != null) {
