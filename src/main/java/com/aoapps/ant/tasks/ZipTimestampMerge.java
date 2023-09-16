@@ -52,6 +52,7 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import org.apache.commons.compress.archivers.zip.X5455_ExtendedTimestamp;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -589,14 +590,27 @@ public final class ZipTimestampMerge {
             } else {
               int buildMethod = buildEntry.getMethod();
               int lastBuildMethod = lastBuildEntry.getMethod();
-              boolean readRaw = buildMethod != -1 && buildMethod == lastBuildMethod;
-              try (
-                  InputStream buildInput = readRaw ? buildZipFile.getRawInputStream(buildEntry)
-                      : buildZipFile.getInputStream(buildEntry);
-                  InputStream lastBuildInput = readRaw ? lastBuildZipFile.getRawInputStream(lastBuildEntry)
-                      : lastBuildZipFile.getInputStream(lastBuildEntry)) {
-                updated = !streamsMatch(buildInput, lastBuildInput, buff1, buff2);
+              boolean contentMatches;
+              if (buildMethod != -1 && buildMethod == lastBuildMethod) {
+                // Try shortcut of comparing compressed form
+                try (
+                    InputStream buildInput = buildZipFile.getRawInputStream(buildEntry);
+                    InputStream lastBuildInput = lastBuildZipFile.getRawInputStream(lastBuildEntry)) {
+                  contentMatches = streamsMatch(buildInput, lastBuildInput, buff1, buff2);
+                }
+              } else {
+                contentMatches = false;
               }
+              if (!contentMatches && buildMethod != ZipEntry.STORED) {
+                // Compare decompressed forms to be precise (in case of compression method that is not one-for-one
+                // mapping from decompressed to compressed forms)
+                try (
+                    InputStream buildInput = buildZipFile.getInputStream(buildEntry);
+                    InputStream lastBuildInput = lastBuildZipFile.getInputStream(lastBuildEntry)) {
+                  contentMatches = streamsMatch(buildInput, lastBuildInput, buff1, buff2);
+                }
+              }
+              updated = !contentMatches;
             }
             debug.accept(() -> "updated: " + updated);
             long expectedTime;
