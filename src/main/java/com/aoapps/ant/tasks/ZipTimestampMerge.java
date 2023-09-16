@@ -25,6 +25,7 @@ package com.aoapps.ant.tasks;
 
 import static com.aoapps.ant.tasks.SeoJavadocFilter.AT;
 
+import java.io.DataInput;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -93,37 +94,36 @@ public final class ZipTimestampMerge {
    */
   private static final int BUFFER_SIZE = 4096;
 
-  private static final int LOCAL_TIME_OFFSET = 0x0a;
-
-  private static final byte[] END_OF_DIRECTORY_SIGNATURE = {0x50, 0x4b, 0x05, 0x06};
-  private static final byte[] CENTRAL_HEADER_SIGNATURE = {0x50, 0x4b, 0x01, 0x02};
-  private static final byte[] END_CENTRAL_HEADER_SIGNATURE = {0x50, 0x4b, 0x05, 0x06};
-  private static final int CENTRAL_HEADER_LEN = 0x2e - CENTRAL_HEADER_SIGNATURE.length;
-  private static final int CENTRAL_HEADER_TIME_OFFSET = 0x0c - CENTRAL_HEADER_SIGNATURE.length;
-  private static final int CENTRAL_HEADER_FILENAME_LEN_OFFSET = 0x1c - CENTRAL_HEADER_SIGNATURE.length;
-  private static final int CENTRAL_HEADER_EXTRA_LEN_OFFSET = 0x1e - CENTRAL_HEADER_SIGNATURE.length;
-  private static final int CENTRAL_HEADER_LOCAL_HEADER_OFFSET = 0x2a - CENTRAL_HEADER_SIGNATURE.length;
-
-  static {
-    assert END_OF_DIRECTORY_SIGNATURE.length == CENTRAL_HEADER_SIGNATURE.length;
-    assert CENTRAL_HEADER_SIGNATURE.length == END_CENTRAL_HEADER_SIGNATURE.length;
-  }
+  /**
+   * The number of bytes already read for the signature.
+   * Used to offset positions in header.
+   */
+  private static final int SIGNATURE_BYTES = Integer.BYTES;
 
   /**
    * Reads a ZIP "word", which is four bytes little-endian.
    */
   private static long getZipWord(byte[] buff, int offset) {
-    long value = ByteUtils.fromLittleEndian(buff, offset, 4);
+    long value = ByteUtils.fromLittleEndian(buff, offset, Integer.BYTES);
     assert value > 0L;
     assert value < (1L << Integer.SIZE);
     return value;
   }
 
   /**
+   * Reads a ZIP "word", which is four bytes little-endian.
+   */
+  private static long readZipWord(DataInput in) throws IOException {
+    byte[] buff = new byte[Integer.BYTES];
+    in.readFully(buff);
+    return getZipWord(buff, 0);
+  }
+
+  /**
    * Reads a ZIP "short", which is two bytes little-endian.
    */
   private static int getZipShort(byte[] buff, int offset) {
-    long value = ByteUtils.fromLittleEndian(buff, offset, 2);
+    long value = ByteUtils.fromLittleEndian(buff, offset, Short.BYTES);
     assert value > 0L;
     assert value < (1L << Short.SIZE);
     return (int) value;
@@ -205,26 +205,21 @@ public final class ZipTimestampMerge {
     return dosTimeDate;
   }
 
-  private static final int EOCD_MIN_LENGTH = 22;
-
   private static long getCentralDirectoryStartOffset(File buildArtifact, RandomAccessFile buildArtifactRaf,
       ZipFile zipFile, Consumer<Supplier<String>> debug) throws IOException {
     // See https://en.wikipedia.org/wiki/ZIP_(file_format)
     // See https://stackoverflow.com/a/4802165/7121505
     // Read backward to find end-of-directory 0x06054b50
-    byte[] wordBuff = new byte[4];
-    long pos = buildArtifactRaf.length() - EOCD_MIN_LENGTH;
+    long pos = buildArtifactRaf.length() - ZipEntry.ENDHDR;
     long centralDirectoryStartOffset = -1;
     while (pos >= 0) {
       buildArtifactRaf.seek(pos);
-      buildArtifactRaf.readFully(wordBuff);
-      if (Arrays.equals(wordBuff, END_OF_DIRECTORY_SIGNATURE)) {
+      if (readZipWord(buildArtifactRaf) == ZipEntry.ENDSIG) {
         final long posFinal = pos;
         debug.accept(() -> "End of central directory record found @ 0x" + Long.toHexString(posFinal));
-        long centralDirectoryOffsetPos = pos + 0x10;
+        long centralDirectoryOffsetPos = pos + ZipEntry.ENDOFF;
         buildArtifactRaf.seek(centralDirectoryOffsetPos);
-        buildArtifactRaf.readFully(wordBuff);
-        long centralDirectoryOffset = getZipWord(wordBuff, 0);
+        long centralDirectoryOffset = readZipWord(buildArtifactRaf);
         debug.accept(() -> "centralDirectoryOffset = 0x" + Long.toHexString(centralDirectoryOffset));
         if (centralDirectoryOffset < 0) {
           throw new ZipException("Invalid central directory offset: " + centralDirectoryOffset);
@@ -267,23 +262,23 @@ public final class ZipTimestampMerge {
       long centralDirectoryStartOffset = getCentralDirectoryStartOffset(buildArtifact, buildArtifactRaf, buildZipFile, debug);
       debug.accept(() -> "centralDirectoryStartOffset = 0x" + Long.toHexString(centralDirectoryStartOffset));
       buildArtifactRaf.seek(centralDirectoryStartOffset);
-      byte[] signature = new byte[CENTRAL_HEADER_SIGNATURE.length];
-      byte[] centralDirectoryHeader = new byte[CENTRAL_HEADER_LEN];
-      buildArtifactRaf.readFully(signature);
-      debug.accept(() -> "signature @ 0x" + Long.toHexString(centralDirectoryStartOffset) + " is " + bytesToHex(signature));
-      while (Arrays.equals(signature, CENTRAL_HEADER_SIGNATURE)) {
-        long centralDirectoryPosition = buildArtifactRaf.getFilePointer();
+      byte[] centralDirectoryHeaderWithoutSignature = new byte[ZipEntry.CENHDR - SIGNATURE_BYTES];
+      long signature = readZipWord(buildArtifactRaf);
+      final long signatureFinal1 = signature;
+      debug.accept(() -> "signature @ 0x" + Long.toHexString(centralDirectoryStartOffset) + " is 0x" + Long.toHexString(signatureFinal1));
+      while (signature == ZipEntry.CENSIG) {
+        long centralDirectoryPosition = buildArtifactRaf.getFilePointer() - SIGNATURE_BYTES;
         debug.accept(() -> "centralDirectoryPosition = 0x" + Long.toHexString(centralDirectoryPosition));
-        buildArtifactRaf.readFully(centralDirectoryHeader);
+        buildArtifactRaf.readFully(centralDirectoryHeaderWithoutSignature);
         // Read raw filename
-        int filenameLen = getZipShort(centralDirectoryHeader, CENTRAL_HEADER_FILENAME_LEN_OFFSET);
+        int filenameLen = getZipShort(centralDirectoryHeaderWithoutSignature, ZipEntry.CENNAM - SIGNATURE_BYTES);
         debug.accept(() -> "filenameLen = " + filenameLen);
         if (filenameLen < 0) {
           throw new ZipException("Invalid filename length: " + filenameLen);
         }
         byte[] rawFilename = new byte[filenameLen];
         buildArtifactRaf.readFully(rawFilename);
-        int extraLen = getZipShort(centralDirectoryHeader, CENTRAL_HEADER_EXTRA_LEN_OFFSET);
+        int extraLen = getZipShort(centralDirectoryHeaderWithoutSignature, ZipEntry.CENEXT - SIGNATURE_BYTES);
         debug.accept(() -> "extraLen = " + extraLen);
         if (extraLen < 0) {
           throw new ZipException("Invalid extra length: " + extraLen);
@@ -291,7 +286,7 @@ public final class ZipTimestampMerge {
         byte[] rawExtra = new byte[extraLen];
         buildArtifactRaf.readFully(rawExtra);
         // Look for relative offset match
-        long relativeOffset = getZipWord(centralDirectoryHeader, CENTRAL_HEADER_LOCAL_HEADER_OFFSET);
+        long relativeOffset = getZipWord(centralDirectoryHeaderWithoutSignature, ZipEntry.CENOFF - SIGNATURE_BYTES);
         debug.accept(() -> "relativeOffset = 0x" + Long.toHexString(relativeOffset));
         long localHeaderOffset = relativeOffset + buildZipFile.getFirstLocalFileHeaderOffset();
         debug.accept(() -> "localHeaderOffset = 0x" + Long.toHexString(localHeaderOffset));
@@ -303,12 +298,13 @@ public final class ZipTimestampMerge {
               + Long.toHexString(newEntry.position));
         }
         long sigPos = buildArtifactRaf.getFilePointer();
-        buildArtifactRaf.readFully(signature);
-        debug.accept(() -> "signature @ 0x" + Long.toHexString(sigPos) + " is " + bytesToHex(signature));
+        signature = readZipWord(buildArtifactRaf);
+        final long signatureFinal2 = signature;
+        debug.accept(() -> "signature @ 0x" + Long.toHexString(sigPos) + " is 0x" + Long.toHexString(signatureFinal2));
       }
-      if (!Arrays.equals(signature, END_CENTRAL_HEADER_SIGNATURE)) {
-        throw new ZipException("signature is not END_CENTRAL_HEADER_SIGNATURE: " + bytesToHex(signature)
-            + " != " + bytesToHex(END_CENTRAL_HEADER_SIGNATURE));
+      if (signature != ZipEntry.ENDSIG) {
+        throw new ZipException("signature is not ENDSIG: 0x" + Long.toHexString(signature)
+            + " != 0x" + Long.toHexString(ZipEntry.ENDSIG));
       }
     }
     return map;
@@ -329,7 +325,7 @@ public final class ZipTimestampMerge {
     }
     // Local header
     long localHeaderOffset = buildEntry.getLocalHeaderOffset();
-    patches.add(new Patch(localHeaderOffset + LOCAL_TIME_OFFSET, expected, replacement));
+    patches.add(new Patch(localHeaderOffset + ZipEntry.LOCTIM, expected, replacement));
     // Central Directory header
     CentralDirectoryEntry centralDirectoryEntry = centralDirectory.get(localHeaderOffset);
     if (centralDirectoryEntry == null) {
@@ -342,7 +338,7 @@ public final class ZipTimestampMerge {
       throw new ZipException("raw filename mismatch: " + bytesToHex(centralDirectoryEntry.rawFilename) + " != "
           + bytesToHex(expectedRawName));
     }
-    patches.add(new Patch(centralDirectoryEntry.position + CENTRAL_HEADER_TIME_OFFSET, expected, replacement));
+    patches.add(new Patch(centralDirectoryEntry.position + ZipEntry.CENTIM, expected, replacement));
   }
 
   // See https://stackoverflow.com/a/9855338
