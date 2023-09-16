@@ -39,5 +39,6 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     shortTitle="API Docs"
     datePublished="2023-09-05T02:34:47Z"
     dateModified="${ao:getLastModified('index.html')}"
+    allowRobots="false"
   />
 </jsp:root>
