@@ -115,7 +115,7 @@ public final class ZipTimestampMerge {
   private static long getZipWord(byte[] buff, int offset) {
     long value = ByteUtils.fromLittleEndian(buff, offset, 4);
     assert value > 0L;
-    assert value < 0x100000000L;
+    assert value < (1L << Integer.SIZE);
     return value;
   }
 
@@ -125,7 +125,7 @@ public final class ZipTimestampMerge {
   private static int getZipShort(byte[] buff, int offset) {
     long value = ByteUtils.fromLittleEndian(buff, offset, 2);
     assert value > 0L;
-    assert value < 0x10000L;
+    assert value < (1L << Short.SIZE);
     return (int) value;
   }
 
