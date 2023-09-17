@@ -34,16 +34,16 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-15T08:50:48Z"
+    dateModified="2023-09-17T07:22:33Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
     <header>
       <ao:include
         page="/ao-badges/badges.inc.jspx"
-        arg.projectStatus="alpha"
-        arg.managementStatus="preview"
-        arg.packagingStatus="developmental"
+        arg.projectStatus="current-stable"
+        arg.managementStatus="production"
+        arg.packagingStatus="active"
         arg.javaseVersion="@{documented.javase.version}"
         arg.semanticVersioning="2.0.0"
         arg.license="lgpl-3.0"
