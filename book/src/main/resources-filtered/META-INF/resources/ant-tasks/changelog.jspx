@@ -37,6 +37,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     shortTitle="Changelog"
     tocLevels="1"
     datePublished="2023-09-05T02:34:47Z"
+    dateModified="2023-09-17T08:08:48Z"
   >
     <c:if test="${fn:endsWith('@{project.version}', '-SNAPSHOT') and !fn:endsWith('@{project.version}', '-POST-SNAPSHOT')}">
       <changelog:release
@@ -46,11 +47,20 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         artifactId="@{documented.artifactId}"
         repository="@{nexusUrl}content/repositories/snapshots/"
         scmUrl="@{project.scm.url}"
-      >
-        <ul>
-          <li>New Ant tasks used in building AO-supported projects.</li>
-        </ul>
-      </changelog:release>
+      />
     </c:if>
+
+    <changelog:release
+      projectName="@{documented.name}"
+      version="1.0.0"
+      datePublished="2023-09-17T08:08:48Z"
+      groupId="@{project.groupId}"
+      artifactId="@{documented.artifactId}"
+      scmUrl="@{project.scm.url}"
+    >
+      <ul>
+        <li>New Ant tasks used in building AO-supported projects.</li>
+      </ul>
+    </changelog:release>
   </core:page>
 </jsp:root>
