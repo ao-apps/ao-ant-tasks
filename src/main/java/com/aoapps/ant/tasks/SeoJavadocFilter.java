@@ -166,10 +166,21 @@ public final class SeoJavadocFilter {
     }
     String name = zipEntry.getName();
     if (
-        name.equalsIgnoreCase("help-doc.html")
+        // Packages
+        StringUtils.containsIgnoreCase(name, "/class-use/")
+        || StringUtils.endsWithIgnoreCase(name, "/package-tree.html")
+        || StringUtils.endsWithIgnoreCase(name, "/package-use.html")
+        // Directories
+        || StringUtils.startsWithIgnoreCase(name, "legal/")
+        || StringUtils.startsWithIgnoreCase(name, "src/")
+        // Top-level
+        || name.equalsIgnoreCase("allclasses-index.html")
+        || name.equalsIgnoreCase("allpackages-index.html")
+        || name.equalsIgnoreCase("deprecated-list.html")
+        || name.equalsIgnoreCase("help-doc.html")
         || name.equalsIgnoreCase("index-all.html")
         || name.equalsIgnoreCase("overview-tree.html")
-        || name.equalsIgnoreCase("package-tree.html")
+        || name.equalsIgnoreCase("search.html")
     ) {
       return NOINDEX_NOFOLLOW;
     } else if (
