@@ -39,7 +39,12 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     datePublished="2023-09-05T02:34:47Z"
     dateModified="2023-09-17T08:08:48Z"
   >
-    <c:if test="${fn:endsWith('@{project.version}', '-SNAPSHOT') and !fn:endsWith('@{project.version}', '-POST-SNAPSHOT')}">
+    <c:set var="latestRelease" value="1.0.0" />
+    <c:if test="${
+      fn:endsWith('@{project.version}', '-SNAPSHOT')
+      and !fn:endsWith('@{project.version}', '-POST-SNAPSHOT')
+      and '@{project.version}' != (latestRelease.concat('-SNAPSHOT'))
+    }">
       <changelog:release
         projectName="@{documented.name}"
         version="@{project.version}"
