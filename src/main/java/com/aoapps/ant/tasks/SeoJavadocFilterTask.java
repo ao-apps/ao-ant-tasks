@@ -104,6 +104,7 @@ public class SeoJavadocFilterTask extends Task {
 
   private File buildDirectory;
   private String projectUrl;
+  private String subprojectSubpath;
   private Iterable<String> nofollow = defaultNofollow;
   private Iterable<String> follow = Collections.singletonList(SeoJavadocFilter.ANY_URL);
 
@@ -123,14 +124,28 @@ public class SeoJavadocFilterTask extends Task {
 
   /**
    * The project url.  The apidocs URLs will be based on this, depending on artifact classifier.
-   * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}test/apidocs/"}.
-   * Otherwise will be {@code "${projectUrl}apidocs/"}
+   * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}${subprojectSubpath}test/apidocs/"}.
+   * Otherwise will be {@code "${projectUrl}${subprojectSubpath}apidocs/"}
+   *
+   * @see #setSubprojectSubpath(java.lang.String)
    */
   public void setProjectUrl(String projectUrl) {
     if (!projectUrl.endsWith("/")) {
       projectUrl += "/";
     }
     this.projectUrl = projectUrl;
+  }
+
+  /**
+   * The sub-project sub-path used in the url.
+   *
+   * @see #setProjectUrl(java.lang.String)
+   */
+  public void setSubprojectSubpath(String subprojectSubpath) {
+    if (!subprojectSubpath.endsWith("/")) {
+      subprojectSubpath += "/";
+    }
+    this.subprojectSubpath = subprojectSubpath;
   }
 
   /**
@@ -196,12 +211,12 @@ public class SeoJavadocFilterTask extends Task {
     this.follow = followPrefixes;
   }
 
-  static String getApidocsUrl(File javadocJar, String projectUrl) {
+  static String getApidocsUrl(File javadocJar, String projectUrl, String subprojectSubpath) {
     String apidocsUrl;
     if (StringUtils.endsWithIgnoreCase(javadocJar.getName(), "-test-javadoc.jar")) {
-      apidocsUrl = projectUrl + "test/apidocs";
+      apidocsUrl = projectUrl + subprojectSubpath + "test/apidocs";
     } else {
-      apidocsUrl = projectUrl + "apidocs";
+      apidocsUrl = projectUrl + subprojectSubpath + "apidocs";
     }
     return apidocsUrl;
   }
@@ -229,7 +244,7 @@ public class SeoJavadocFilterTask extends Task {
         for (File javadocJar : javadocJarFiles) {
           SeoJavadocFilter.filterJavadocJar(
               javadocJar,
-              getApidocsUrl(javadocJar, projectUrl),
+              getApidocsUrl(javadocJar, projectUrl, subprojectSubpath),
               nofollow,
               follow,
               msg -> log(msg.get(), LogLevel.DEBUG.getLevel()),

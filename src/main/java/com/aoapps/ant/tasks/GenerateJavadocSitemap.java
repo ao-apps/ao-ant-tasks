@@ -427,6 +427,7 @@ public final class GenerateJavadocSitemap {
    *
    * @param javadocJar See {@link GenerateJavadocSitemapTask#setBuildDirectory(java.lang.String)}
    * @param apidocsUrl See {@link GenerateJavadocSitemapTask#setProjectUrl(java.lang.String)}
+   *                   and {@link GenerateJavadocSitemapTask#setSubprojectSubpath(java.lang.String)}
    */
   public static void addSitemapToJavadocJar(
       File javadocJar,

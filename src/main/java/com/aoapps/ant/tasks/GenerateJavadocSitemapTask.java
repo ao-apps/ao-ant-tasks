@@ -39,6 +39,7 @@ public class GenerateJavadocSitemapTask extends Task {
 
   private File buildDirectory;
   private String projectUrl;
+  private String subprojectSubpath;
 
   /**
    * The current build directory.
@@ -56,14 +57,28 @@ public class GenerateJavadocSitemapTask extends Task {
 
   /**
    * The project url.  The apidocs URLs will be based on this, depending on artifact classifier.
-   * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}test/apidocs/"}.
-   * Otherwise will be {@code "${projectUrl}apidocs/"}
+   * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}${subprojectSubpath}test/apidocs/"}.
+   * Otherwise will be {@code "${projectUrl}${subprojectSubpath}apidocs/"}
+   *
+   * @see #setSubprojectSubpath(java.lang.String)
    */
   public void setProjectUrl(String projectUrl) {
     if (!projectUrl.endsWith("/")) {
       projectUrl += "/";
     }
     this.projectUrl = projectUrl;
+  }
+
+  /**
+   * The sub-project sub-path used in the url.
+   *
+   * @see #setProjectUrl(java.lang.String)
+   */
+  public void setSubprojectSubpath(String subprojectSubpath) {
+    if (!subprojectSubpath.endsWith("/")) {
+      subprojectSubpath += "/";
+    }
+    this.subprojectSubpath = subprojectSubpath;
   }
 
   /**
@@ -89,7 +104,7 @@ public class GenerateJavadocSitemapTask extends Task {
         for (File javadocJar : javadocJarFiles) {
           GenerateJavadocSitemap.addSitemapToJavadocJar(
               javadocJar,
-              SeoJavadocFilterTask.getApidocsUrl(javadocJar, projectUrl),
+              SeoJavadocFilterTask.getApidocsUrl(javadocJar, projectUrl, subprojectSubpath),
               msg -> log(msg.get(), LogLevel.DEBUG.getLevel()),
               msg -> log(msg.get(), LogLevel.INFO.getLevel())
           );

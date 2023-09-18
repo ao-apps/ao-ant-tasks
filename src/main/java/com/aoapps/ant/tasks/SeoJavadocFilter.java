@@ -575,6 +575,7 @@ public final class SeoJavadocFilter {
    *
    * @param javadocJar See {@link SeoJavadocFilterTask#setBuildDirectory(java.lang.String)}
    * @param apidocsUrl See {@link SeoJavadocFilterTask#setProjectUrl(java.lang.String)}
+   *                   and {@link SeoJavadocFilterTask#setSubprojectSubpath(java.lang.String)}
    * @param nofollow   See {@link SeoJavadocFilterTask#setNofollow(java.lang.String)}
    * @param follow     See {@link SeoJavadocFilterTask#setFollow(java.lang.String)}
    */

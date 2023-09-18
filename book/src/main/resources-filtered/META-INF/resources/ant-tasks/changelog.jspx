@@ -37,7 +37,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     shortTitle="Changelog"
     tocLevels="1"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-18T02:34:28Z"
+    dateModified="2023-09-18T22:07:02Z"
   >
     <c:set var="latestRelease" value="1.0.0" />
     <c:if test="${
@@ -69,6 +69,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
               <li><code>overview-tree.html</code></li>
               <li><code>search.html</code></li>
             </ol>
+          </li>
+          <li>
+            New attribute <code>subprojectSubpath</code> that is the path to the sub-project.
+            This attribute should be set from the new Maven property <code>\${subproject.subpath}</code>. .
+            This should be empty for the top-level project or the path (ending in slash) to append to <code>\${project.url}</code>.
           </li>
         </ul>
       </changelog:release>
