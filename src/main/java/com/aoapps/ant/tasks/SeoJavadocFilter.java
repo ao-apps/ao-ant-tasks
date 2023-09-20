@@ -339,8 +339,13 @@ public final class SeoJavadocFilter {
     // Find target ZIP entry
     ZipArchiveEntry targetEntry = zipFile.getEntry(target);
     if (targetEntry == null) {
-      // Fail if targerZIP entry not found
+      // Fail if target ZIP entry not found
       throw new ZipException("Target of internal link not found in ZIP archive: zipEntry = " + zipEntry
+          + ", hrefValue = " + hrefValue + ", target = " + target);
+    }
+    if (targetEntry.isDirectory()) {
+      // Fail if target ZIP entry is a directory
+      throw new ZipException("Target of internal link is a directory: zipEntry = " + zipEntry
           + ", hrefValue = " + hrefValue + ", target = " + target);
     }
     String targetRobotsHeader = getRobotsHeader(javadocJar, targetEntry,
