@@ -60,7 +60,7 @@ import org.apache.commons.text.StringEscapeUtils;
  * </p>
  * <ol>
  * <li>
- *   Adds <a href="https://support.google.com/webmasters/answer/139066">Canonical URLs</a> to each page.
+ *   Adds <a href="https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls">Canonical URLs</a> to each page.
  * </li>
  * <li>
  *   Adds <a href="https://www.robotstxt.org/meta.html">{@code <meta name="robots" content="noindex, nofollow">}</a>
