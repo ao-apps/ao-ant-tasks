@@ -181,6 +181,7 @@ public final class SeoJavadocFilter {
         || name.equalsIgnoreCase("index-all.html")
         || name.equalsIgnoreCase("overview-tree.html")
         || name.equalsIgnoreCase("search.html")
+        || name.equalsIgnoreCase("serialized-form.html")
     ) {
       return NOINDEX_NOFOLLOW;
     } else if (
