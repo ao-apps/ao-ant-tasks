@@ -334,9 +334,30 @@ public final class SeoJavadocFilter {
     }
   }
 
-  private static void nofollowLinks(File javadocJar, ZipFile zipFile, ZipArchiveEntry zipEntry,
-      List<String> linesWithEof, Map<String, String> robotsHeaderCache, Iterable<String> nofollow,
-      Iterable<String> follow, Consumer<Supplier<String>> debug) throws IOException {
+  private static String getExpectedRelForTarget(File javadocJar, ZipFile zipFile, ZipArchiveEntry zipEntry,
+      Map<String, String> robotsHeaderCache, String hrefValue, String target, Consumer<Supplier<String>> debug) throws IOException {
+    // Find target ZIP entry
+    ZipArchiveEntry targetEntry = zipFile.getEntry(target);
+    if (targetEntry == null) {
+      // Fail if targerZIP entry not found
+      throw new ZipException("Target of internal link not found in ZIP archive: zipEntry = " + zipEntry
+          + ", hrefValue = " + hrefValue + ", target = " + target);
+    }
+    String targetRobotsHeader = getRobotsHeader(javadocJar, targetEntry,
+        () -> readLinesWithEof(javadocJar, zipFile, targetEntry), robotsHeaderCache);
+    // Also rel for internal pages that are are noindex, using robotsHeaderCache
+    if (GenerateJavadocSitemap.isInSitemap(targetRobotsHeader)) {
+      return FOLLOW;
+    } else {
+      debug.accept(() -> "Adding nofollow for internal link from " + zipEntry.getName() + " to " + target);
+      return NOFOLLOW;
+    }
+  }
+
+  private static void nofollowLinks(String apidocsUrlWithSlash, File javadocJar, ZipFile zipFile,
+      ZipArchiveEntry zipEntry, List<String> linesWithEof, Map<String, String> robotsHeaderCache,
+      Iterable<String> nofollow, Iterable<String> follow, Consumer<Supplier<String>> debug
+  ) throws IOException {
     // Find the </head> line
     int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
     if (headEndIndex == -1) {
@@ -432,22 +453,18 @@ public final class SeoJavadocFilter {
                 debug.accept(() -> "Resolved relative path link target: zipEntry = " + zipEntry
                     + ", hrefValue = " + hrefValue + ", target = " + target);
               }
-              // Find target ZIP entry
-              ZipArchiveEntry targetEntry = zipFile.getEntry(target);
-              if (targetEntry == null) {
-                // Fail if targerZIP entry not found
-                throw new ZipException("Target of internal link not found in ZIP archive: zipEntry = " + zipEntry
-                    + ", hrefValue = " + hrefValue + ", target = " + target);
+              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, hrefValue, target,
+                  debug);
+            } else if (StringUtils.startsWithIgnoreCase(hrefValue, apidocsUrlWithSlash)) {
+              String target = hrefValue.substring(apidocsUrlWithSlash.length());
+              if (target.isEmpty()) {
+                target = "index.html";
               }
-              String targetRobotsHeader = getRobotsHeader(javadocJar, targetEntry,
-                  () -> readLinesWithEof(javadocJar, zipFile, targetEntry), robotsHeaderCache);
-              // Also rel for internal pages that are are noindex, using robotsHeaderCache
-              if (GenerateJavadocSitemap.isInSitemap(targetRobotsHeader)) {
-                expectedRel = FOLLOW;
-              } else {
-                debug.accept(() -> "Adding nofollow for internal link from " + zipEntry.getName() + " to " + target);
-                expectedRel = NOFOLLOW;
-              }
+              final String targetFinal = target;
+              debug.accept(() -> "Stripped target from absolute URL: zipEntry = " + zipEntry
+                  + ", hrefValue = " + hrefValue + ", target = " + targetFinal);
+              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, hrefValue, target,
+                  debug);
             } else {
               expectedRel = null;
               for (String nofollowPrefix : nofollow) {
@@ -589,7 +606,8 @@ public final class SeoJavadocFilter {
               String robotsHeader = getRobotsHeader(javadocJar, zipEntry, () -> linesWithEof, robotsHeaderCache);
               insertOrUpdateHead(javadocJar, zipEntry, linesWithEof, ROBOTS_PREFIX,
                   currentValue -> StringEscapeUtils.escapeHtml4(robotsHeader), ROBOTS_SUFFIX, "Robots: ", debug);
-              nofollowLinks(javadocJar, zipFile, zipEntry, linesWithEof, robotsHeaderCache, nofollow, follow, debug);
+              nofollowLinks(apidocsUrlWithSlash, javadocJar, zipFile, zipEntry, linesWithEof, robotsHeaderCache,
+                  nofollow, follow, debug);
               // Recombine
               String newHtml = StringUtils.join(linesWithEof, "");
               // Only when modified
