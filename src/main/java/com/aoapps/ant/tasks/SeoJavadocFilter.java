@@ -334,10 +334,9 @@ public final class SeoJavadocFilter {
     }
   }
 
-  private static void nofollowLinks(String apidocsUrlWithSlash, File javadocJar, ZipFile zipFile,
-      ZipArchiveEntry zipEntry, List<String> linesWithEof, Map<String, String> robotsHeaderCache,
-      Iterable<String> nofollow, Iterable<String> follow, Consumer<Supplier<String>> debug
-  ) throws IOException {
+  private static void nofollowLinks(File javadocJar, ZipFile zipFile, ZipArchiveEntry zipEntry,
+      List<String> linesWithEof, Map<String, String> robotsHeaderCache, Iterable<String> nofollow,
+      Iterable<String> follow, Consumer<Supplier<String>> debug) throws IOException {
     // Find the </head> line
     int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
     if (headEndIndex == -1) {
@@ -418,39 +417,27 @@ public final class SeoJavadocFilter {
           if (hrefValue.startsWith("#")) {
             expectedRel = FOLLOW;
           } else {
-            // If begins with our apidocs URL, convert to relative path for proper in-site nofollow.
-            // This is required for repeatable results when reprocessing the same JAR.
-            String hrefValueAdjusted;
-            boolean hasScheme;
-            if (StringUtils.startsWithIgnoreCase(hrefValue, apidocsUrlWithSlash)) {
-              hrefValueAdjusted = hrefValue.substring(apidocsUrlWithSlash.length());
-              hasScheme = false;
-            } else {
-              hrefValueAdjusted = hrefValue;
-              hasScheme = SCHEME_PATTERN.matcher(hrefValueAdjusted).matches();
-            }
+            boolean hasScheme = SCHEME_PATTERN.matcher(hrefValue).matches();
             if (!hasScheme) {
               // No scheme, is relative URL
               // Resolve any ../ using URI
               URI uri = URI.create("/" + zipEntry.getName());
-              URI targetUri = uri.resolve(hrefValueAdjusted);
+              URI targetUri = uri.resolve(hrefValue);
               String targetPath = targetUri.getPath();
               if (!targetPath.startsWith("/")) {
                 throw new AssertionError("target does not begin with slash (/): " + targetPath);
               }
               String target = targetPath.substring(1);
-              if (!hrefValueAdjusted.equals(target)) {
+              if (!hrefValue.equals(target)) {
                 debug.accept(() -> "Resolved relative path link target: zipEntry = " + zipEntry
-                    + ", hrefValue = " + hrefValue + ", hrefValueAdjusted = " + hrefValueAdjusted
-                    + ", target = " + target);
+                    + ", hrefValue = " + hrefValue + ", target = " + target);
               }
               // Find target ZIP entry
               ZipArchiveEntry targetEntry = zipFile.getEntry(target);
               if (targetEntry == null) {
                 // Fail if targerZIP entry not found
                 throw new ZipException("Target of internal link not found in ZIP archive: zipEntry = " + zipEntry
-                    + ", hrefValue = " + hrefValue + ", hrefValueAdjusted = " + hrefValueAdjusted
-                    + ", target = " + target);
+                    + ", hrefValue = " + hrefValue + ", target = " + target);
               }
               String targetRobotsHeader = getRobotsHeader(javadocJar, targetEntry,
                   () -> readLinesWithEof(javadocJar, zipFile, targetEntry), robotsHeaderCache);
@@ -462,7 +449,6 @@ public final class SeoJavadocFilter {
                 expectedRel = NOFOLLOW;
               }
             } else {
-              assert hrefValue.equals(hrefValueAdjusted) : "URL not adjusted";
               expectedRel = null;
               for (String nofollowPrefix : nofollow) {
                 if (ANY_URL.equals(nofollowPrefix) || StringUtils.startsWithIgnoreCase(hrefValue, nofollowPrefix)) {
@@ -603,8 +589,7 @@ public final class SeoJavadocFilter {
               String robotsHeader = getRobotsHeader(javadocJar, zipEntry, () -> linesWithEof, robotsHeaderCache);
               insertOrUpdateHead(javadocJar, zipEntry, linesWithEof, ROBOTS_PREFIX,
                   currentValue -> StringEscapeUtils.escapeHtml4(robotsHeader), ROBOTS_SUFFIX, "Robots: ", debug);
-              nofollowLinks(apidocsUrlWithSlash, javadocJar, zipFile, zipEntry, linesWithEof, robotsHeaderCache,
-                  nofollow, follow, debug);
+              nofollowLinks(javadocJar, zipFile, zipEntry, linesWithEof, robotsHeaderCache, nofollow, follow, debug);
               // Recombine
               String newHtml = StringUtils.join(linesWithEof, "");
               // Only when modified
