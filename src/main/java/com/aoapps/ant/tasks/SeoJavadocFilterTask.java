@@ -142,7 +142,7 @@ public class SeoJavadocFilterTask extends Task {
    * @see #setProjectUrl(java.lang.String)
    */
   public void setSubprojectSubpath(String subprojectSubpath) {
-    if (!subprojectSubpath.endsWith("/")) {
+    if (!subprojectSubpath.isEmpty() && !subprojectSubpath.endsWith("/")) {
       subprojectSubpath += "/";
     }
     this.subprojectSubpath = subprojectSubpath;
