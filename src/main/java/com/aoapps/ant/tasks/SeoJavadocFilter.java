@@ -458,7 +458,7 @@ public final class SeoJavadocFilter {
             } else if (StringUtils.startsWithIgnoreCase(hrefValue, apidocsUrlWithSlash)) {
               String target = hrefValue.substring(apidocsUrlWithSlash.length());
               if (target.isEmpty()) {
-                target = "index.html";
+                target = INDEX_HTML;
               }
               final String targetFinal = target;
               debug.accept(() -> "Stripped target from absolute URL: zipEntry = " + zipEntry
