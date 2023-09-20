@@ -35,13 +35,10 @@ import static com.aoapps.ant.tasks.SeoJavadocFilter.ROBOTS_PREFIX;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.ROBOTS_SUFFIX;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.readLinesWithEof;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -302,6 +299,13 @@ public final class GenerateJavadocSitemap {
   }
 
   /**
+   * Given the robots header, determine if the page in the sitemap.
+   */
+  static boolean isInSitemap(String robotsHeader) {
+    return robotsHeader == null || !robotsHeader.contains(NOINDEX);
+  }
+
+  /**
    * Implementation of {@link #addSitemapToJavadocJar(java.io.File)}
    * with provided logging.
    */
@@ -360,17 +364,14 @@ public final class GenerateJavadocSitemap {
               }
             }
             if (StringUtils.endsWithIgnoreCase(zipEntryName, FILTER_EXTENSION)) {
-              List<String> linesWithEof;
-              try (Reader in = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipEntry), ENCODING))) {
-                linesWithEof = readLinesWithEof(javadocJar, zipEntryName, in);
-              }
+              List<String> linesWithEof = readLinesWithEof(javadocJar, zipFile, zipEntry);
               String originalHtml = StringUtils.join(linesWithEof, "");
               debug.accept(() -> zipEntryName + ": Read " + linesWithEof.size() + " lines, " + originalHtml.length()
                   + " characters");
               // Determine the robots header value
               String robotsHeader = findRobotsHeader(javadocJar, zipEntry, linesWithEof, debug);
               // Add to sitemap when not noindex
-              if (robotsHeader == null || !robotsHeader.contains(NOINDEX)) {
+              if (isInSitemap(robotsHeader)) {
                 if (!sitemapNames.add(zipEntryName)) {
                   throw new ZipException("Duplicate name in " + javadocJar + ": " + zipEntryName);
                 }

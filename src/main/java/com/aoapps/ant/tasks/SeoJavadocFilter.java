@@ -31,13 +31,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -49,6 +52,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.function.IOSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -65,7 +69,7 @@ import org.apache.commons.text.StringEscapeUtils;
  * <li>
  *   Adds <a href="https://www.robotstxt.org/meta.html">{@code <meta name="robots" content="noindex, nofollow">}</a>
  *   to selective pages. See
- *   {@link #getRobotsHeader(java.io.File, org.apache.commons.compress.archivers.zip.ZipArchiveEntry, java.util.List)}.
+ *   {@link #getRobotsHeader(java.io.File, org.apache.commons.compress.archivers.zip.ZipArchiveEntry, org.apache.commons.io.function.IOSupplier, java.util.Map)}.
  * </li>
  * <li>
  *   rel="nofollow" is added to all links matching the configured nofollow and follow prefixes.
@@ -155,16 +159,29 @@ public final class SeoJavadocFilter {
   private static final String OVERVIEW_SUMMARY_HTML = "overview-summary.html";
 
   /**
+   * Placeholder value put into cache to represent no header value.
+   */
+  private static final String NO_ROBOTS_HEADER = "NO_ROBOTS_HEADER";
+
+  /**
    * Determines the robots header value.
    *
    * @return  the header value or {@code null} for none.
    */
   private static String getRobotsHeader(File javadocJar, ZipArchiveEntry zipEntry,
-      List<String> linesWithEof) throws ZipException {
+      IOSupplier<? extends List<String>> linesWithEofSupplier, Map<String, String> robotsHeaderCache
+  ) throws IOException {
     if (zipEntry.isDirectory()) {
       return null;
     }
     String name = zipEntry.getName();
+    // Check cache first
+    String value = robotsHeaderCache.get(name);
+    if (value != null) {
+      return NO_ROBOTS_HEADER.equals(value) ? null : value;
+    }
+    // Resolve value, if any
+    final String robotsHeaderValue;
     if (
         // Packages
         StringUtils.containsIgnoreCase(name, "/class-use/")
@@ -183,11 +200,12 @@ public final class SeoJavadocFilter {
         || name.equalsIgnoreCase("search.html")
         || name.equalsIgnoreCase("serialized-form.html")
     ) {
-      return NOINDEX_NOFOLLOW;
+      robotsHeaderValue = NOINDEX_NOFOLLOW;
     } else if (
         name.equalsIgnoreCase(INDEX_HTML)
         || name.equalsIgnoreCase(OVERVIEW_SUMMARY_HTML)
     ) {
+      List<String> linesWithEof = linesWithEofSupplier.get();
       boolean hasRefresh = linesWithEof.stream()
           .anyMatch(line -> line.startsWith("<meta http-equiv=\"Refresh\" content=\"0;"));
       boolean hasRedirectClass = linesWithEof.stream()
@@ -202,47 +220,52 @@ public final class SeoJavadocFilter {
         }
       }
       if (hasRefresh) {
-        return NOINDEX_FOLLOW;
+        robotsHeaderValue = NOINDEX_FOLLOW;
       } else if (name.equalsIgnoreCase(INDEX_HTML)) {
         int bodyElemPos = linesWithEof.indexOf("<body class=\"package-index-page\">" + NL);
         if (bodyElemPos == -1) {
           throw new ZipException("Entry has neither \"index-redirect-page\" body class nor \"package-index-page\": "
               + javadocJar + AT + name);
         }
-        return null;
+        robotsHeaderValue = null;
       } else if (name.equalsIgnoreCase(OVERVIEW_SUMMARY_HTML)) {
         throw new ZipException("Entry is only expected to be a redirect page: " + javadocJar + AT + name);
       } else {
         throw new AssertionError("Unexpected name: " + name);
       }
     } else {
-      return null;
+      robotsHeaderValue = null;
     }
+    // Store in cache
+    robotsHeaderCache.put(name, robotsHeaderValue == null ? NO_ROBOTS_HEADER : robotsHeaderValue);
+    return robotsHeaderValue;
   }
 
   /**
    * Reads all lines, splitting on lines while keeping the line endings.
    */
-  static List<String> readLinesWithEof(File javadocJar, String zipEntryName, Reader in) throws IOException {
-    List<String> linesWithEof = new ArrayList<>();
-    StringBuilder lineSb = new StringBuilder(80);
-    int ch;
-    while ((ch = in.read()) != -1) {
-      // Make sure only Unix newlines
-      if (ch == '\r') {
-        throw new ZipException("Carriage return in javadocs, requiring Unix newlines only: " + javadocJar + AT
-            + zipEntryName + AT_LINE + (linesWithEof.size() + 1));
+  static List<String> readLinesWithEof(File javadocJar, ZipFile zipFile, ZipArchiveEntry zipEntry) throws IOException {
+    try (Reader in = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipEntry), ENCODING))) {
+      List<String> linesWithEof = new ArrayList<>();
+      StringBuilder lineSb = new StringBuilder(80);
+      int ch;
+      while ((ch = in.read()) != -1) {
+        // Make sure only Unix newlines
+        if (ch == '\r') {
+          throw new ZipException("Carriage return in javadocs, requiring Unix newlines only: " + javadocJar + AT
+              + zipEntry + AT_LINE + (linesWithEof.size() + 1));
+        }
+        lineSb.append((char) ch);
+        if (ch == NL) {
+          linesWithEof.add(lineSb.toString());
+          lineSb.setLength(0);
+        }
       }
-      lineSb.append((char) ch);
-      if (ch == NL) {
+      if (lineSb.length() != 0) {
         linesWithEof.add(lineSb.toString());
-        lineSb.setLength(0);
       }
+      return linesWithEof;
     }
-    if (lineSb.length() != 0) {
-      linesWithEof.add(lineSb.toString());
-    }
-    return linesWithEof;
   }
 
   /**
@@ -311,8 +334,10 @@ public final class SeoJavadocFilter {
     }
   }
 
-  private static void nofollowLinks(File javadocJar, ZipArchiveEntry zipEntry, List<String> linesWithEof,
-      Iterable<String> nofollow, Iterable<String> follow, Consumer<Supplier<String>> debug) throws ZipException {
+  private static void nofollowLinks(String apidocsUrlWithSlash, File javadocJar, ZipFile zipFile,
+      ZipArchiveEntry zipEntry, List<String> linesWithEof, Map<String, String> robotsHeaderCache,
+      Iterable<String> nofollow, Iterable<String> follow, Consumer<Supplier<String>> debug
+  ) throws IOException {
     // Find the </head> line
     int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
     if (headEndIndex == -1) {
@@ -393,11 +418,51 @@ public final class SeoJavadocFilter {
           if (hrefValue.startsWith("#")) {
             expectedRel = FOLLOW;
           } else {
-            boolean hasScheme = SCHEME_PATTERN.matcher(hrefValue).matches();
+            // If begins with our apidocs URL, convert to relative path for proper in-site nofollow.
+            // This is required for repeatable results when reprocessing the same JAR.
+            String hrefValueAdjusted;
+            boolean hasScheme;
+            if (StringUtils.startsWithIgnoreCase(hrefValue, apidocsUrlWithSlash)) {
+              hrefValueAdjusted = hrefValue.substring(apidocsUrlWithSlash.length());
+              hasScheme = false;
+            } else {
+              hrefValueAdjusted = hrefValue;
+              hasScheme = SCHEME_PATTERN.matcher(hrefValueAdjusted).matches();
+            }
             if (!hasScheme) {
               // No scheme, is relative URL
-              expectedRel = FOLLOW;
+              // Resolve any ../ using URI
+              URI uri = URI.create("/" + zipEntry.getName());
+              URI targetUri = uri.resolve(hrefValueAdjusted);
+              String targetPath = targetUri.getPath();
+              if (!targetPath.startsWith("/")) {
+                throw new AssertionError("target does not begin with slash (/): " + targetPath);
+              }
+              String target = targetPath.substring(1);
+              if (!hrefValueAdjusted.equals(target)) {
+                debug.accept(() -> "Resolved relative path link target: zipEntry = " + zipEntry
+                    + ", hrefValue = " + hrefValue + ", hrefValueAdjusted = " + hrefValueAdjusted
+                    + ", target = " + target);
+              }
+              // Find target ZIP entry
+              ZipArchiveEntry targetEntry = zipFile.getEntry(target);
+              if (targetEntry == null) {
+                // Fail if targerZIP entry not found
+                throw new ZipException("Target of internal link not found in ZIP archive: zipEntry = " + zipEntry
+                    + ", hrefValue = " + hrefValue + ", hrefValueAdjusted = " + hrefValueAdjusted
+                    + ", target = " + target);
+              }
+              String targetRobotsHeader = getRobotsHeader(javadocJar, targetEntry,
+                  () -> readLinesWithEof(javadocJar, zipFile, targetEntry), robotsHeaderCache);
+              // Also rel for internal pages that are are noindex, using robotsHeaderCache
+              if (GenerateJavadocSitemap.isInSitemap(targetRobotsHeader)) {
+                expectedRel = FOLLOW;
+              } else {
+                debug.accept(() -> "Adding nofollow for internal link from " + zipEntry.getName() + " to " + target);
+                expectedRel = NOFOLLOW;
+              }
             } else {
+              assert hrefValue.equals(hrefValueAdjusted) : "URL not adjusted";
               expectedRel = null;
               for (String nofollowPrefix : nofollow) {
                 if (ANY_URL.equals(nofollowPrefix) || StringUtils.startsWithIgnoreCase(hrefValue, nofollowPrefix)) {
@@ -493,6 +558,7 @@ public final class SeoJavadocFilter {
       try (ZipArchiveOutputStream tmpZipOut = new ZipArchiveOutputStream(tmpFile)) {
         debug.accept(() -> "Reading " + javadocJar);
         try (ZipFile zipFile = new ZipFile(javadocJar)) {
+          Map<String, String> robotsHeaderCache = new HashMap<>();
           Enumeration<ZipArchiveEntry> zipEntries = zipFile.getEntriesInPhysicalOrder();
           while (zipEntries.hasMoreElements()) {
             ZipArchiveEntry zipEntry = zipEntries.nextElement();
@@ -510,10 +576,7 @@ public final class SeoJavadocFilter {
                 tmpZipOut.addRawArchiveEntry(zipEntry, rawStream);
               }
             } else {
-              List<String> linesWithEof;
-              try (Reader in = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipEntry), ENCODING))) {
-                linesWithEof = readLinesWithEof(javadocJar, zipEntryName, in);
-              }
+              List<String> linesWithEof = readLinesWithEof(javadocJar, zipFile, zipEntry);
               String originalHtml = StringUtils.join(linesWithEof, "");
               debug.accept(() -> zipEntryName + ": Read " + linesWithEof.size() + " lines, " + originalHtml.length()
                   + " characters");
@@ -537,10 +600,11 @@ public final class SeoJavadocFilter {
                     }
                   }, CANONICAL_SUFFIX, "Canonical URL: ", debug);
               // Determine the robots header value
-              String robotsHeader = getRobotsHeader(javadocJar, zipEntry, linesWithEof);
+              String robotsHeader = getRobotsHeader(javadocJar, zipEntry, () -> linesWithEof, robotsHeaderCache);
               insertOrUpdateHead(javadocJar, zipEntry, linesWithEof, ROBOTS_PREFIX,
                   currentValue -> StringEscapeUtils.escapeHtml4(robotsHeader), ROBOTS_SUFFIX, "Robots: ", debug);
-              nofollowLinks(javadocJar, zipEntry, linesWithEof, nofollow, follow, debug);
+              nofollowLinks(apidocsUrlWithSlash, javadocJar, zipFile, zipEntry, linesWithEof, robotsHeaderCache,
+                  nofollow, follow, debug);
               // Recombine
               String newHtml = StringUtils.join(linesWithEof, "");
               // Only when modified
