@@ -268,6 +268,30 @@ public final class SeoJavadocFilter {
     }
   }
 
+  static int findHeadStartIndex(File javadocJar, ZipArchiveEntry zipEntry, List<String> linesWithEof,
+      String msgPrefix) throws ZipException {
+    // Find the <head> line
+    int headStartIndex = linesWithEof.indexOf(HEAD_ELEM_START);
+    if (headStartIndex == -1) {
+      throw new ZipException(msgPrefix + HEAD_ELEM_START.trim() + " not found: " + javadocJar + AT + zipEntry);
+    }
+    return headStartIndex;
+  }
+
+  static int findHeadEndIndex(File javadocJar, ZipArchiveEntry zipEntry, List<String> linesWithEof,
+      String msgPrefix, int headStartIndex) throws ZipException {
+    // Find the </head> line
+    int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
+    if (headEndIndex == -1) {
+      throw new ZipException(msgPrefix + HEAD_ELEM_END.trim() + " not found: " + javadocJar + AT + zipEntry);
+    }
+    if (headEndIndex < headStartIndex) {
+      throw new ZipException(msgPrefix + HEAD_ELEM_END.trim() + " before " + HEAD_ELEM_START.trim() + ": "
+          + javadocJar + AT + zipEntry);
+    }
+    return headEndIndex;
+  }
+
   /**
    * Insert or update HTML.
    *
@@ -279,20 +303,8 @@ public final class SeoJavadocFilter {
       String lineStart, UnaryOperator<String> getValue, String lineEndWithEof, String msgPrefix,
       Consumer<Supplier<String>> debug
   ) throws ZipException {
-    // Find the <head> line
-    int headStartIndex = linesWithEof.indexOf(HEAD_ELEM_START);
-    if (headStartIndex == -1) {
-      throw new ZipException(msgPrefix + HEAD_ELEM_START.trim() + " not found: " + javadocJar + AT + zipEntry);
-    }
-    // Find the </head> line
-    int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
-    if (headEndIndex == -1) {
-      throw new ZipException(msgPrefix + HEAD_ELEM_END.trim() + " not found: " + javadocJar + AT + zipEntry);
-    }
-    if (headEndIndex < headStartIndex) {
-      throw new ZipException(msgPrefix + HEAD_ELEM_END.trim() + " before " + HEAD_ELEM_START.trim() + ": "
-          + javadocJar + AT + zipEntry);
-    }
+    int headStartIndex = findHeadStartIndex(javadocJar, zipEntry, linesWithEof, msgPrefix);
+    int headEndIndex = findHeadEndIndex(javadocJar, zipEntry, linesWithEof, msgPrefix, headStartIndex);
     // Search for existing line to update
     int finishedIndex = -1;
     for (int lineIndex = headStartIndex + 1; lineIndex < headEndIndex; lineIndex++) {
@@ -363,11 +375,7 @@ public final class SeoJavadocFilter {
       ZipArchiveEntry zipEntry, List<String> linesWithEof, Map<String, String> robotsHeaderCache,
       Iterable<String> nofollow, Iterable<String> follow, Consumer<Supplier<String>> debug
   ) throws IOException {
-    // Find the </head> line
-    int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
-    if (headEndIndex == -1) {
-      throw new ZipException(HEAD_ELEM_END.trim() + " not found: " + javadocJar + AT + zipEntry);
-    }
+    int headEndIndex = findHeadEndIndex(javadocJar, zipEntry, linesWithEof, "", 0);
     debug.accept(() -> "Filtering links in " + javadocJar + AT + zipEntry);
     for (int lineIndex = headEndIndex + 1; lineIndex < linesWithEof.size(); lineIndex++) {
       String line = linesWithEof.get(lineIndex);

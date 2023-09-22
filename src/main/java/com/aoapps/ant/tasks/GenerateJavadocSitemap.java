@@ -27,8 +27,6 @@ import static com.aoapps.ant.tasks.SeoJavadocFilter.AT;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.AT_LINE;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.ENCODING;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.FILTER_EXTENSION;
-import static com.aoapps.ant.tasks.SeoJavadocFilter.HEAD_ELEM_END;
-import static com.aoapps.ant.tasks.SeoJavadocFilter.HEAD_ELEM_START;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.NL;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.NOINDEX;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.ROBOTS_PREFIX;
@@ -257,20 +255,8 @@ public final class GenerateJavadocSitemap {
   private static String findRobotsHeader(File javadocJar, ZipArchiveEntry zipEntry, List<String> linesWithEof,
       Consumer<Supplier<String>> debug
   ) throws ZipException {
-    // Find the <head> line
-    int headStartIndex = linesWithEof.indexOf(HEAD_ELEM_START);
-    if (headStartIndex == -1) {
-      throw new ZipException(HEAD_ELEM_START.trim() + " not found: " + javadocJar + AT + zipEntry);
-    }
-    // Find the </head> line
-    int headEndIndex = linesWithEof.indexOf(HEAD_ELEM_END);
-    if (headEndIndex == -1) {
-      throw new ZipException(HEAD_ELEM_END.trim() + " not found: " + javadocJar + AT + zipEntry);
-    }
-    if (headEndIndex < headStartIndex) {
-      throw new ZipException(HEAD_ELEM_END.trim() + " before " + HEAD_ELEM_START.trim() + ": "
-          + javadocJar + AT + zipEntry);
-    }
+    int headStartIndex = SeoJavadocFilter.findHeadStartIndex(javadocJar, zipEntry, linesWithEof, "");
+    int headEndIndex = SeoJavadocFilter.findHeadEndIndex(javadocJar, zipEntry, linesWithEof, "", headStartIndex);
     // Search for line with robots meta
     int finishedIndex = -1;
     String robotsValue = null;
