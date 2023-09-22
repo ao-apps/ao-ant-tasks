@@ -892,7 +892,7 @@ public final class ZipTimestampMerge {
       File lastBuildDirectory,
       File buildDirectory
   ) throws IOException, ParseException {
-    ZipTimestampMerge.mergeDirectory(
+    mergeDirectory(
         outputTimestamp,
         buildReproducible,
         requireLastBuild,

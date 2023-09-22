@@ -672,7 +672,7 @@ public final class SeoJavadocFilter {
     if (follow == null) {
       follow = Collections.emptyList();
     }
-    SeoJavadocFilter.filterJavadocJar(
+    filterJavadocJar(
         javadocJar,
         apidocsUrl,
         nofollow,

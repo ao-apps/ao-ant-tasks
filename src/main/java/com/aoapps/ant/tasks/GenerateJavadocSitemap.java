@@ -420,7 +420,7 @@ public final class GenerateJavadocSitemap {
       File javadocJar,
       String apidocsUrl
   ) throws IOException {
-    GenerateJavadocSitemap.addSitemapToJavadocJar(
+    addSitemapToJavadocJar(
         javadocJar,
         apidocsUrl,
         logger::fine,
