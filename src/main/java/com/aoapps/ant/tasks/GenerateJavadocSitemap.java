@@ -299,7 +299,8 @@ public final class GenerateJavadocSitemap {
       File javadocJar,
       String apidocsUrl,
       Consumer<Supplier<String>> debug,
-      Consumer<Supplier<String>> info
+      Consumer<Supplier<String>> info,
+      Consumer<Supplier<String>> warn
   ) throws IOException {
     info.accept(() -> "Generate Javadoc Sitemap processing " + javadocJar);
     // Validate
@@ -324,6 +325,8 @@ public final class GenerateJavadocSitemap {
       }
     };
     try (deleteTmpFile) {
+      int totalEntries = 0;
+      int totalHtmlEntries = 0;
       debug.accept(() -> "Writing temp file " + tmpFile);
       try (ZipArchiveOutputStream tmpZipOut = new ZipArchiveOutputStream(tmpFile)) {
         debug.accept(() -> "Reading " + javadocJar);
@@ -332,6 +335,7 @@ public final class GenerateJavadocSitemap {
           SortedSet<SitemapPath> sitemapPaths = new TreeSet<>();
           Enumeration<ZipArchiveEntry> zipEntries = zipFile.getEntriesInPhysicalOrder();
           while (zipEntries.hasMoreElements()) {
+            totalEntries++;
             ZipArchiveEntry zipEntry = zipEntries.nextElement();
             debug.accept(() -> "zipEntry: " + zipEntry);
             String zipEntryName = zipEntry.getName();
@@ -350,6 +354,7 @@ public final class GenerateJavadocSitemap {
               }
             }
             if (StringUtils.endsWithIgnoreCase(zipEntryName, FILTER_EXTENSION)) {
+              totalHtmlEntries++;
               List<String> linesWithEof = readLinesWithEof(javadocJar, zipFile, zipEntry);
               String originalHtml = StringUtils.join(linesWithEof, "");
               debug.accept(() -> zipEntryName + ": Read " + linesWithEof.size() + " lines, " + originalHtml.length()
@@ -398,13 +403,20 @@ public final class GenerateJavadocSitemap {
           tmpZipOut.closeArchiveEntry();
         }
       }
+      final int totalHtmlEntriesFinal = totalHtmlEntries;
+      if (totalHtmlEntriesFinal == 0) {
+        final int totalEntriesFinal = totalEntries;
+        warn.accept(() -> "Generate Javadoc Sitemap: No files found matching *" + FILTER_EXTENSION + " in "
+            + totalEntriesFinal + " total " + (totalEntriesFinal == 1 ? "entry" : "entries"));
+      }
       // Ovewrite if anything changed, delete otherwise
       if (!FileUtils.contentEquals(javadocJar, tmpFile)) {
         if (!tmpFile.renameTo(javadocJar)) {
           throw new IOException("Rename failed: " + tmpFile + " to " + javadocJar);
         }
       } else {
-        info.accept(() -> "Generate Javadoc Sitemap: No changes made (javadocs already processed?)");
+        info.accept(() -> "Generate Javadoc Sitemap: No changes made"
+            + (totalHtmlEntriesFinal == 0 ? "" : " (javadocs already processed?)"));
       }
     }
   }
@@ -424,7 +436,8 @@ public final class GenerateJavadocSitemap {
         javadocJar,
         apidocsUrl,
         logger::fine,
-        logger::info
+        logger::info,
+        logger::warning
     );
   }
 }

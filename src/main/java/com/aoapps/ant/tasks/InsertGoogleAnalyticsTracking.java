@@ -156,12 +156,15 @@ public final class InsertGoogleAnalyticsTracking {
         }
       };
       try (deleteTmpFile) {
+        int totalEntries = 0;
+        int totalHtmlEntries = 0;
         debug.accept(() -> "Writing temp file " + tmpFile);
         try (ZipArchiveOutputStream tmpZipOut = new ZipArchiveOutputStream(tmpFile)) {
           debug.accept(() -> "Reading " + file);
           try (ZipFile zipFile = new ZipFile(file)) {
             Enumeration<ZipArchiveEntry> zipEntries = zipFile.getEntriesInPhysicalOrder();
             while (zipEntries.hasMoreElements()) {
+              totalEntries++;
               ZipArchiveEntry zipEntry = zipEntries.nextElement();
               debug.accept(() -> "zipEntry: " + zipEntry);
               String zipEntryName = zipEntry.getName();
@@ -177,6 +180,7 @@ public final class InsertGoogleAnalyticsTracking {
                   tmpZipOut.addRawArchiveEntry(zipEntry, rawStream);
                 }
               } else {
+                totalHtmlEntries++;
                 List<String> linesWithEof = readLinesWithEof(file, zipFile, zipEntry);
                 String originalHtml = StringUtils.join(linesWithEof, "");
                 debug.accept(() -> zipEntryName + ": Read " + linesWithEof.size() + " lines, " + originalHtml.length()
@@ -202,13 +206,20 @@ public final class InsertGoogleAnalyticsTracking {
             }
           }
         }
+        final int totalHtmlEntriesFinal = totalHtmlEntries;
+        if (totalHtmlEntriesFinal == 0) {
+          final int totalEntriesFinal = totalEntries;
+          warn.accept(() -> "Insert Google Analytics Tracking: No files found matching *" + FILTER_EXTENSION + " in "
+              + totalEntriesFinal + " total " + (totalEntriesFinal == 1 ? "entry" : "entries"));
+        }
         // Ovewrite if anything changed, delete otherwise
         if (!FileUtils.contentEquals(file, tmpFile)) {
           if (!tmpFile.renameTo(file)) {
             throw new IOException("Rename failed: " + tmpFile + " to " + file);
           }
         } else {
-          info.accept(() -> "Insert Google Analytics Tracking: No changes made (ZIP file already processed?)");
+          info.accept(() -> "Insert Google Analytics Tracking: No changes made"
+              + (totalHtmlEntriesFinal == 0 ? "" : " (javadocs already processed?)"));
         }
       }
     }

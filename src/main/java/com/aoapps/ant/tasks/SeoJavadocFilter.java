@@ -543,7 +543,8 @@ public final class SeoJavadocFilter {
       Iterable<String> nofollow,
       Iterable<String> follow,
       Consumer<Supplier<String>> debug,
-      Consumer<Supplier<String>> info
+      Consumer<Supplier<String>> info,
+      Consumer<Supplier<String>> warn
   ) throws IOException {
     info.accept(() -> "SEO Javadoc filtering " + javadocJar);
     // Validate
@@ -570,6 +571,8 @@ public final class SeoJavadocFilter {
       }
     };
     try (deleteTmpFile) {
+      int totalEntries = 0;
+      int totalHtmlEntries = 0;
       debug.accept(() -> "Writing temp file " + tmpFile);
       try (ZipArchiveOutputStream tmpZipOut = new ZipArchiveOutputStream(tmpFile)) {
         debug.accept(() -> "Reading " + javadocJar);
@@ -577,6 +580,7 @@ public final class SeoJavadocFilter {
           Map<String, String> robotsHeaderCache = new HashMap<>();
           Enumeration<ZipArchiveEntry> zipEntries = zipFile.getEntriesInPhysicalOrder();
           while (zipEntries.hasMoreElements()) {
+            totalEntries++;
             ZipArchiveEntry zipEntry = zipEntries.nextElement();
             debug.accept(() -> "zipEntry: " + zipEntry);
             String zipEntryName = zipEntry.getName();
@@ -592,6 +596,7 @@ public final class SeoJavadocFilter {
                 tmpZipOut.addRawArchiveEntry(zipEntry, rawStream);
               }
             } else {
+              totalHtmlEntries++;
               List<String> linesWithEof = readLinesWithEof(javadocJar, zipFile, zipEntry);
               String originalHtml = StringUtils.join(linesWithEof, "");
               debug.accept(() -> zipEntryName + ": Read " + linesWithEof.size() + " lines, " + originalHtml.length()
@@ -640,13 +645,20 @@ public final class SeoJavadocFilter {
           }
         }
       }
+      final int totalHtmlEntriesFinal = totalHtmlEntries;
+      if (totalHtmlEntriesFinal == 0) {
+        final int totalEntriesFinal = totalEntries;
+        warn.accept(() -> "SEO Javadoc filtering: No files found matching *" + FILTER_EXTENSION + " in "
+            + totalEntriesFinal + " total " + (totalEntriesFinal == 1 ? "entry" : "entries"));
+      }
       // Ovewrite if anything changed, delete otherwise
       if (!FileUtils.contentEquals(javadocJar, tmpFile)) {
         if (!tmpFile.renameTo(javadocJar)) {
           throw new IOException("Rename failed: " + tmpFile + " to " + javadocJar);
         }
       } else {
-        info.accept(() -> "SEO Javadoc filtering: No changes made (javadocs already filtered?)");
+        info.accept(() -> "SEO Javadoc filtering: No changes made"
+            + (totalHtmlEntriesFinal == 0 ? "" : " (javadocs already processed?)"));
       }
     }
   }
@@ -678,7 +690,8 @@ public final class SeoJavadocFilter {
         nofollow,
         follow,
         logger::fine,
-        logger::info
+        logger::info,
+        logger::warning
     );
   }
 }
