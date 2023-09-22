@@ -34,7 +34,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     title="@{documented.name}"
     description="@{documented.description}"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-20T00:18:05Z"
+    dateModified="2023-09-21T16:45:26Z"
   >
     <core:child page="changelog.jspx" />
     <core:child page="apidocs/index.jspx" />
@@ -76,7 +76,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
       <ul>
         <li>Fine-grained management of last-modified times within <code>*.aar</code>, <code>*.jar</code>, <code>*.war</code>, and <code>*.zip</code> files for optimum reproducibility and publishability.</li>
         <li>Generate directory-only ZIP files with a reference timestamp to be able to manipulate ZIP file structure reproducibly while also not losing per-entry timestamps.</li>
-        <li>SEO filter Javadocs: <ao:a href="https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls">Canonical URLs</ao:a>, selective <code>rel="nofollow"</code>, and <ao:a href="https://www.sitemaps.org/">Sitemaps</ao:a>.</li>
+        <li>
+          SEO filter Javadocs: <ao:a href="https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls">Canonical URLs</ao:a>,
+          selective <code>rel="nofollow"</code>, <ao:a href="https://www.sitemaps.org/">Sitemaps</ao:a>,
+          and <ao:a href="https://analytics.google.com/">Google Analytics</ao:a> tracking code.
+        </li>
       </ul>
     </section:section>
     <section:section label="Motivation">

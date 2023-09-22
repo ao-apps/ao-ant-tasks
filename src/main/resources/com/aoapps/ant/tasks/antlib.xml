@@ -31,6 +31,10 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     classname="com.aoapps.ant.tasks.GenerateJavadocSitemapTask"
   />
   <taskdef
+    name="insert-google-analytics-tracking"
+    classname="com.aoapps.ant.tasks.InsertGoogleAnalyticsTrackingTask"
+  />
+  <taskdef
     name="seo-javadoc-filter"
     classname="com.aoapps.ant.tasks.SeoJavadocFilterTask"
   />
