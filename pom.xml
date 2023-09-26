@@ -41,10 +41,6 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
 
     <javadoc.breadcrumbs><![CDATA[<a target="${javadoc.target}" href="https://oss.aoapps.com/">AO OSS</a>
 / <a target="${javadoc.target}" href="${project.url}">Ant Tasks</a>]]></javadoc.breadcrumbs>
-
-    <!-- Dependencies -->
-    <commons-io.version>2.13.0</commons-io.version>
-    <commons-lang3.version>3.13.0</commons-lang3.version>
   </properties>
 
   <name>AO Ant Tasks</name>
@@ -176,11 +172,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                   <location>${project.build.directory}/offlineLinks/org.apache.commons/commons-compress</location>
                 </offlineLink>
                 <offlineLink>
-                  <url>https://javadoc.io/doc/commons-io/commons-io/${commons-io.version}/</url>
+                  <url>https://javadoc.io/doc/commons-io/commons-io/${commons-io:commons-io:jar.version}/</url>
                   <location>${project.build.directory}/offlineLinks/commons-io/commons-io</location>
                 </offlineLink>
                 <offlineLink>
-                  <url>https://javadoc.io/doc/org.apache.commons/commons-lang3/${commons-lang3.version}/</url>
+                  <url>https://javadoc.io/doc/org.apache.commons/commons-lang3/${org.apache.commons:commons-lang3:jar.version}/</url>
                   <location>${project.build.directory}/offlineLinks/org.apache.commons/commons-lang3</location>
                 </offlineLink>
                 <offlineLink>
@@ -260,10 +256,10 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>1.24.0</version>
       </dependency>
       <dependency>
-        <groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>${commons-io.version}</version>
+        <groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>2.13.0</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId><version>${commons-lang3.version}</version>
+        <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId><version>3.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId><version>1.10.0</version>
