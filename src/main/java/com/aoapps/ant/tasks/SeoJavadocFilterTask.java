@@ -153,7 +153,7 @@ public class SeoJavadocFilterTask extends Task {
    * <code>rel="nofollow"</code>. May use {@link SeoJavadocFilter#ANY_URL} to match all.
    * Nofollow are matched before {@linkplain #setFollow(java.lang.String) follow}.
    * <p>
-   * If starts with a slash {@code '/'}, will also set the corresponding Javadocs page to robots "noindex, nofollow".
+   * If starts with a slash {@code '/'}, will also set the prefix-matched Javadocs pages to robots "noindex, nofollow".
    * </p>
    * <p>
    * If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
