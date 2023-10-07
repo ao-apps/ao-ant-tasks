@@ -69,7 +69,7 @@ import org.apache.commons.text.StringEscapeUtils;
  * <li>
  *   Adds <a href="https://www.robotstxt.org/meta.html">{@code <meta name="robots" content="noindex, nofollow">}</a>
  *   to selective pages. See
- *   {@link #getRobotsHeader(java.io.File, org.apache.commons.compress.archivers.zip.ZipArchiveEntry, org.apache.commons.io.function.IOSupplier, java.util.Map)}.
+ *   {@link #getRobotsHeader(java.io.File, org.apache.commons.compress.archivers.zip.ZipArchiveEntry, org.apache.commons.io.function.IOSupplier, java.util.Map, java.lang.Iterable)}.
  * </li>
  * <li>
  *   rel="nofollow" is added to all links matching the configured nofollow and follow prefixes.
@@ -164,12 +164,34 @@ public final class SeoJavadocFilter {
   private static final String NO_ROBOTS_HEADER = "NO_ROBOTS_HEADER";
 
   /**
+   * Determines if a page should be noindex, nofollow based on matching the nofollow settings.
+   */
+  private static boolean isPageNofollow(Iterable<String> nofollow, String name) {
+    String slashName = null; // Creation deferred since most apidocs do not use this feature
+    for (String nofollowPrefix : nofollow) {
+      if (
+          !nofollowPrefix.isEmpty()
+          && nofollowPrefix.charAt(0) == '/'
+      ) {
+        if (slashName == null) {
+          slashName = '/' + name;
+        }
+        if (StringUtils.startsWithIgnoreCase(slashName, nofollowPrefix)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Determines the robots header value.
    *
    * @return  the header value or {@code null} for none.
    */
   private static String getRobotsHeader(File javadocJar, ZipArchiveEntry zipEntry,
-      IOSupplier<? extends List<String>> linesWithEofSupplier, Map<String, String> robotsHeaderCache
+      IOSupplier<? extends List<String>> linesWithEofSupplier, Map<String, String> robotsHeaderCache,
+      Iterable<String> nofollow
   ) throws IOException {
     if (zipEntry.isDirectory()) {
       return null;
@@ -183,8 +205,10 @@ public final class SeoJavadocFilter {
     // Resolve value, if any
     final String robotsHeaderValue;
     if (
+        // Check for manual nofollow
+        isPageNofollow(nofollow, name)
         // Packages
-        StringUtils.containsIgnoreCase(name, "/class-use/")
+        || StringUtils.containsIgnoreCase(name, "/class-use/")
         || StringUtils.endsWithIgnoreCase(name, "/package-tree.html")
         || StringUtils.endsWithIgnoreCase(name, "/package-use.html")
         // Directories
@@ -347,7 +371,8 @@ public final class SeoJavadocFilter {
   }
 
   private static String getExpectedRelForTarget(File javadocJar, ZipFile zipFile, ZipArchiveEntry zipEntry,
-      Map<String, String> robotsHeaderCache, String hrefValue, String target, Consumer<Supplier<String>> debug) throws IOException {
+      Map<String, String> robotsHeaderCache, Iterable<String> nofollow, String hrefValue, String target,
+      Consumer<Supplier<String>> debug) throws IOException {
     // Find target ZIP entry
     ZipArchiveEntry targetEntry = zipFile.getEntry(target);
     if (targetEntry == null) {
@@ -361,7 +386,7 @@ public final class SeoJavadocFilter {
           + ", hrefValue = " + hrefValue + ", target = " + target);
     }
     String targetRobotsHeader = getRobotsHeader(javadocJar, targetEntry,
-        () -> readLinesWithEof(javadocJar, zipFile, targetEntry), robotsHeaderCache);
+        () -> readLinesWithEof(javadocJar, zipFile, targetEntry), robotsHeaderCache, nofollow);
     // Also rel for internal pages that are are noindex, using robotsHeaderCache
     if (GenerateJavadocSitemap.isInSitemap(targetRobotsHeader)) {
       return FOLLOW;
@@ -466,8 +491,8 @@ public final class SeoJavadocFilter {
                 debug.accept(() -> "Resolved relative path link target: zipEntry = " + zipEntry
                     + ", hrefValue = " + hrefValue + ", target = " + target);
               }
-              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, hrefValue, target,
-                  debug);
+              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, nofollow,
+                  hrefValue, target, debug);
             } else if (StringUtils.startsWithIgnoreCase(hrefValue, apidocsUrlWithSlash)) {
               String target = hrefValue.substring(apidocsUrlWithSlash.length());
               if (target.isEmpty()) {
@@ -476,8 +501,8 @@ public final class SeoJavadocFilter {
               final String targetFinal = target;
               debug.accept(() -> "Stripped target from absolute URL: zipEntry = " + zipEntry
                   + ", hrefValue = " + hrefValue + ", target = " + targetFinal);
-              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, hrefValue, target,
-                  debug);
+              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, nofollow,
+                  hrefValue, target, debug);
             } else {
               expectedRel = null;
               for (String nofollowPrefix : nofollow) {
@@ -621,7 +646,7 @@ public final class SeoJavadocFilter {
                     }
                   }, CANONICAL_SUFFIX, "Canonical URL: ", debug);
               // Determine the robots header value
-              String robotsHeader = getRobotsHeader(javadocJar, zipEntry, () -> linesWithEof, robotsHeaderCache);
+              String robotsHeader = getRobotsHeader(javadocJar, zipEntry, () -> linesWithEof, robotsHeaderCache, nofollow);
               insertOrUpdateHead(javadocJar, zipEntry, linesWithEof, ROBOTS_PREFIX,
                   currentValue -> StringEscapeUtils.escapeHtml4(robotsHeader), ROBOTS_SUFFIX, "Robots: ", debug);
               nofollowLinks(apidocsUrlWithSlash, javadocJar, zipFile, zipEntry, linesWithEof, robotsHeaderCache,

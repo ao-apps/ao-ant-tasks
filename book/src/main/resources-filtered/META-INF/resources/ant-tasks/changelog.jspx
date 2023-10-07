@@ -37,7 +37,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     shortTitle="Changelog"
     tocLevels="1"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2023-09-24T04:35:55Z"
+    dateModified="2023-10-07T01:07:48Z"
   >
     <c:set var="latestRelease" value="1.1.1" />
     <c:if test="${
@@ -52,7 +52,14 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         artifactId="@{documented.artifactId}"
         repository="@{nexusUrl}content/repositories/snapshots/"
         scmUrl="@{project.scm.url}"
-      />
+      >
+        <ul>
+          <li>
+            Added robots "noindex, nofollow" for Javadoc pages matching any <code>nofollow</code> starting with a slash
+            <code>'/'</code>.
+          </li>
+        </ul>
+      </changelog:release>
     </c:if>
 
     <changelog:release
