@@ -147,6 +147,11 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                       <includes>element-list, package-list</includes>
                       <outputDirectory>${project.build.directory}/offlineLinks/org.apache.commons/commons-text</outputDirectory>
                     </artifactItem>
+                    <artifactItem>
+                      <groupId>com.github.spotbugs</groupId><artifactId>spotbugs-annotations</artifactId><classifier>javadoc</classifier>
+                      <includes>element-list, package-list</includes>
+                      <outputDirectory>${project.build.directory}/offlineLinks/com.github.spotbugs/spotbugs-annotations</outputDirectory>
+                    </artifactItem>
                     <!-- Test Direct -->
                     <artifactItem>
                       <groupId>junit</groupId><artifactId>junit</artifactId><classifier>javadoc</classifier>
@@ -182,6 +187,10 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                 <offlineLink>
                   <url>https://commons.apache.org/proper/commons-text/apidocs/</url>
                   <location>${project.build.directory}/offlineLinks/org.apache.commons/commons-text</location>
+                </offlineLink>
+                <offlineLink>
+                  <url>https://javadoc.io/doc/com.github.spotbugs/spotbugs-annotations/${com.github.spotbugs:spotbugs-annotations:jar.version}/</url>
+                  <location>${project.build.directory}/offlineLinks/com.github.spotbugs/spotbugs-annotations</location>
                 </offlineLink>
                 <!-- Test Direct -->
                 <offlineLink>
@@ -264,6 +273,9 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
       <dependency>
         <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId><version>1.10.0</version>
       </dependency>
+      <dependency>
+        <groupId>com.github.spotbugs</groupId><artifactId>spotbugs-annotations</artifactId><version>4.8.0</version>
+      </dependency>
       <!-- Test Direct -->
       <dependency>
         <groupId>junit</groupId><artifactId>junit</artifactId><version>4.13.2</version>
@@ -295,6 +307,10 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId><artifactId>spotbugs-annotations</artifactId>
+      <optional>true</optional>
     </dependency>
     <!-- Test Direct -->
     <dependency>

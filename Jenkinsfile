@@ -39,6 +39,7 @@ def upstreamProjects = [
   // No Jenkins: <groupId>commons-io</groupId><artifactId>commons-io</artifactId>
   // No Jenkins: <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId>
   // No Jenkins: <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId>
+  // No Jenkins: <groupId>com.github.spotbugs</groupId><artifactId>spotbugs-annotations</artifactId>
 
   // Test Direct
   // No Jenkins: <groupId>junit</groupId><artifactId>junit</artifactId>

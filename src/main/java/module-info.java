@@ -28,6 +28,7 @@ module com.aoapps.ant.tasks {
   requires org.apache.commons.io; // <groupId>commons-io</groupId><artifactId>commons-io</artifactId>
   requires org.apache.commons.lang3; // <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId>
   requires org.apache.commons.text; // <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId>
+  requires static com.github.spotbugs.annotations; // <groupId>com.github.spotbugs</groupId><artifactId>spotbugs-annotations</artifactId>
   // Java SE
   requires java.logging;
 }

@@ -25,6 +25,7 @@ package com.aoapps.ant.tasks;
 
 import static com.aoapps.ant.tasks.SeoJavadocFilter.AT;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.DataInput;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -172,6 +173,7 @@ public final class ZipTimestampMerge {
   /**
    * One patch that has been identified to be applied after comparison.
    */
+  @SuppressFBWarnings("PI_DO_NOT_REUSE_PUBLIC_IDENTIFIERS_CLASS_NAMES")
   private static final class Patch {
 
     private final long offset;
@@ -648,6 +650,7 @@ public final class ZipTimestampMerge {
    * Artifacts are identified by {@code (artifactId, classifier, type)}.
    */
   // non-private for testing only
+  @SuppressFBWarnings("PI_DO_NOT_REUSE_PUBLIC_IDENTIFIERS_CLASS_NAMES")
   static final class Identifier implements Comparable<Identifier> {
 
     private static final Pattern ARTIFACT_ID_PATTERN = Pattern.compile("-[0-9]");

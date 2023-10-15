@@ -33,6 +33,7 @@ import static com.aoapps.ant.tasks.SeoJavadocFilter.ROBOTS_PREFIX;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.ROBOTS_SUFFIX;
 import static com.aoapps.ant.tasks.SeoJavadocFilter.readLinesWithEof;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -121,6 +122,7 @@ public final class GenerateJavadocSitemap {
     private final String entryName;
     private final long entryTime;
 
+    @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
     private SitemapPath(String entryName, long entryTime) {
       this.entryName = entryName;
       if (entryTime == -1) {
