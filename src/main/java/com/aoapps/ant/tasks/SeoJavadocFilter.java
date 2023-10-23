@@ -234,14 +234,9 @@ public final class SeoJavadocFilter {
           .anyMatch(line -> line.startsWith("<meta http-equiv=\"Refresh\" content=\"0;"));
       boolean hasRedirectClass = linesWithEof.stream()
           .anyMatch(line -> line.endsWith("-redirect-page\">" + NL));
-      if (hasRefresh != hasRedirectClass) {
-        if (!hasRedirectClass) {
-          throw new ZipException("Entry has refresh meta but does not have redirect body class: "
-              + javadocJar + AT + name);
-        } else {
-          throw new ZipException("Entry has redirect body class but does not have refresh meta: "
-              + javadocJar + AT + name);
-        }
+      if (hasRedirectClass && !hasRefresh) {
+        throw new ZipException("Entry has redirect body class but does not have refresh meta: "
+            + javadocJar + AT + name);
       }
       if (hasRefresh) {
         robotsHeaderValue = NOINDEX_FOLLOW;
