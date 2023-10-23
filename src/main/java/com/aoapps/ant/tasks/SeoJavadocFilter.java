@@ -248,8 +248,11 @@ public final class SeoJavadocFilter {
       } else if (name.equalsIgnoreCase(INDEX_HTML)) {
         int bodyElemPos = linesWithEof.indexOf("<body class=\"package-index-page\">" + NL);
         if (bodyElemPos == -1) {
-          throw new ZipException("Entry has neither \"index-redirect-page\" body class nor \"package-index-page\": "
-              + javadocJar + AT + name);
+          bodyElemPos = linesWithEof.indexOf("<body>" + NL); // No body class on non-modular Java 11
+          if (bodyElemPos == -1) {
+            throw new ZipException("Entry has neither \"*-redirect-page\", \"package-index-page\", nor missing body class: "
+                + javadocJar + AT + name);
+          }
         }
         robotsHeaderValue = null;
       } else if (name.equalsIgnoreCase(OVERVIEW_SUMMARY_HTML)) {
