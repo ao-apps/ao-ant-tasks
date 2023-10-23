@@ -445,114 +445,116 @@ public final class SeoJavadocFilter {
           String hrefStr = " href=\"";
           int hrefPos = line.indexOf(hrefStr, linkStart);
           if (hrefPos == -1 || hrefPos >= linkEnd) {
-            throw new ZipException("Link without href: " + javadocJar + AT + zipEntry + AT_LINE
-                + (lineIndex + 1));
-          }
-          // Find closing quote, but must before linkEnd
-          int hrefClosePos = line.indexOf('"', hrefPos + hrefStr.length());
-          if (hrefClosePos == -1 || hrefClosePos >= linkEnd) {
-            throw new ZipException("href without closing quote: " + javadocJar + AT + zipEntry + AT_LINE
-                + (lineIndex + 1));
-          }
-          String hrefValue = line.substring(hrefPos + hrefStr.length(), hrefClosePos);
-          // Find optional rel=", but must be before linkEnd
-          String relStr = " rel=\"";
-          int relPos = line.indexOf(relStr, linkStart);
-          int relClosePos;
-          String relValue;
-          if (relPos == -1 || relPos >= linkEnd) {
-            // no existing rel
-            relClosePos = -1;
-            relValue = null;
+            // Link without href is seen in Java 11
+            // Nothing to change
+            newLine.append(line, pos, linkEnd + 1);
           } else {
             // Find closing quote, but must before linkEnd
-            relClosePos = line.indexOf('"', relPos + relStr.length());
-            if (relClosePos == -1 || relClosePos >= linkEnd) {
-              throw new ZipException("rel without closing quote: " + javadocJar + AT + zipEntry + AT_LINE
+            int hrefClosePos = line.indexOf('"', hrefPos + hrefStr.length());
+            if (hrefClosePos == -1 || hrefClosePos >= linkEnd) {
+              throw new ZipException("href without closing quote: " + javadocJar + AT + zipEntry + AT_LINE
                   + (lineIndex + 1));
             }
-            relValue = line.substring(relPos + relStr.length(), relClosePos);
-          }
-          // Find the expected rel value
-          String expectedRel;
-          // Don't filter href starting with "#"
-          if (hrefValue.startsWith("#")) {
-            expectedRel = FOLLOW;
-          } else {
-            boolean hasScheme = SCHEME_PATTERN.matcher(hrefValue).matches();
-            if (!hasScheme) {
-              // No scheme, is relative URL
-              // Resolve any ../ using URI
-              URI uri = URI.create("/" + zipEntry.getName());
-              URI targetUri = uri.resolve(hrefValue);
-              String targetPath = targetUri.getPath();
-              if (!targetPath.startsWith("/")) {
-                throw new AssertionError("target does not begin with slash (/): " + targetPath);
-              }
-              String target = targetPath.substring(1);
-              if (!hrefValue.equals(target)) {
-                debug.accept(() -> "Resolved relative path link target: zipEntry = " + zipEntry
-                    + ", hrefValue = " + hrefValue + ", target = " + target);
-              }
-              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, nofollow,
-                  hrefValue, target, debug);
-            } else if (StringUtils.startsWithIgnoreCase(hrefValue, apidocsUrlWithSlash)) {
-              String target = hrefValue.substring(apidocsUrlWithSlash.length());
-              if (target.isEmpty()) {
-                target = INDEX_HTML;
-              }
-              final String targetFinal = target;
-              debug.accept(() -> "Stripped target from absolute URL: zipEntry = " + zipEntry
-                  + ", hrefValue = " + hrefValue + ", target = " + targetFinal);
-              expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, nofollow,
-                  hrefValue, target, debug);
+            String hrefValue = line.substring(hrefPos + hrefStr.length(), hrefClosePos);
+            // Find optional rel=", but must be before linkEnd
+            String relStr = " rel=\"";
+            int relPos = line.indexOf(relStr, linkStart);
+            int relClosePos;
+            String relValue;
+            if (relPos == -1 || relPos >= linkEnd) {
+              // no existing rel
+              relClosePos = -1;
+              relValue = null;
             } else {
-              expectedRel = null;
-              for (String nofollowPrefix : nofollow) {
-                if (ANY_URL.equals(nofollowPrefix) || StringUtils.startsWithIgnoreCase(hrefValue, nofollowPrefix)) {
-                  expectedRel = NOFOLLOW;
-                  break;
-                }
+              // Find closing quote, but must before linkEnd
+              relClosePos = line.indexOf('"', relPos + relStr.length());
+              if (relClosePos == -1 || relClosePos >= linkEnd) {
+                throw new ZipException("rel without closing quote: " + javadocJar + AT + zipEntry + AT_LINE
+                    + (lineIndex + 1));
               }
-              if (expectedRel == null) {
-                for (String followPrefix : follow) {
-                  if (ANY_URL.equals(followPrefix) || StringUtils.startsWithIgnoreCase(hrefValue, followPrefix)) {
-                    expectedRel = FOLLOW;
+              relValue = line.substring(relPos + relStr.length(), relClosePos);
+            }
+            // Find the expected rel value
+            String expectedRel;
+            // Don't filter href starting with "#"
+            if (hrefValue.startsWith("#")) {
+              expectedRel = FOLLOW;
+            } else {
+              boolean hasScheme = SCHEME_PATTERN.matcher(hrefValue).matches();
+              if (!hasScheme) {
+                // No scheme, is relative URL
+                // Resolve any ../ using URI
+                URI uri = URI.create("/" + zipEntry.getName());
+                URI targetUri = uri.resolve(hrefValue);
+                String targetPath = targetUri.getPath();
+                if (!targetPath.startsWith("/")) {
+                  throw new AssertionError("target does not begin with slash (/): " + targetPath);
+                }
+                String target = targetPath.substring(1);
+                if (!hrefValue.equals(target)) {
+                  debug.accept(() -> "Resolved relative path link target: zipEntry = " + zipEntry
+                      + ", hrefValue = " + hrefValue + ", target = " + target);
+                }
+                expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, nofollow,
+                    hrefValue, target, debug);
+              } else if (StringUtils.startsWithIgnoreCase(hrefValue, apidocsUrlWithSlash)) {
+                String target = hrefValue.substring(apidocsUrlWithSlash.length());
+                if (target.isEmpty()) {
+                  target = INDEX_HTML;
+                }
+                final String targetFinal = target;
+                debug.accept(() -> "Stripped target from absolute URL: zipEntry = " + zipEntry
+                    + ", hrefValue = " + hrefValue + ", target = " + targetFinal);
+                expectedRel = getExpectedRelForTarget(javadocJar, zipFile, zipEntry, robotsHeaderCache, nofollow,
+                    hrefValue, target, debug);
+              } else {
+                expectedRel = null;
+                for (String nofollowPrefix : nofollow) {
+                  if (ANY_URL.equals(nofollowPrefix) || StringUtils.startsWithIgnoreCase(hrefValue, nofollowPrefix)) {
+                    expectedRel = NOFOLLOW;
                     break;
                   }
                 }
                 if (expectedRel == null) {
-                  throw new ZipException("URL not matched in any nofollow or follow prefix: " + javadocJar + AT
-                      + zipEntry + AT_LINE + (lineIndex + 1) + " href = " + hrefValue);
+                  for (String followPrefix : follow) {
+                    if (ANY_URL.equals(followPrefix) || StringUtils.startsWithIgnoreCase(hrefValue, followPrefix)) {
+                      expectedRel = FOLLOW;
+                      break;
+                    }
+                  }
+                  if (expectedRel == null) {
+                    throw new ZipException("URL not matched in any nofollow or follow prefix: " + javadocJar + AT
+                        + zipEntry + AT_LINE + (lineIndex + 1) + " href = " + hrefValue);
+                  }
                 }
               }
             }
-          }
-          assert expectedRel != null;
-          String expectedRelFinal = expectedRel;
-          debug.accept(() -> "hrefValue = " + hrefValue + ", relValue = " + (relValue == null ? "[NULL]" : relValue)
-              + ", linkEnd = " + linkEnd + ", expectedRel = " + expectedRelFinal);
-          // Update / replace rel as-needed
-          if (expectedRel.equals(FOLLOW)) {
-            if (FOLLOW.equals(relValue) || NOFOLLOW.equals(relValue)) {
-              // Remove rel
-              newLine.append(line, pos, relPos).append(line, relClosePos + 1, linkEnd + 1);
+            assert expectedRel != null;
+            String expectedRelFinal = expectedRel;
+            debug.accept(() -> "hrefValue = " + hrefValue + ", relValue = " + (relValue == null ? "[NULL]" : relValue)
+                + ", linkEnd = " + linkEnd + ", expectedRel = " + expectedRelFinal);
+            // Update / replace rel as-needed
+            if (expectedRel.equals(FOLLOW)) {
+              if (FOLLOW.equals(relValue) || NOFOLLOW.equals(relValue)) {
+                // Remove rel
+                newLine.append(line, pos, relPos).append(line, relClosePos + 1, linkEnd + 1);
+              } else {
+                // Nothing to change
+                newLine.append(line, pos, linkEnd + 1);
+              }
+            } else if (!expectedRel.equals(relValue)) {
+              if (relValue == null) {
+                // Insert before href
+                newLine.append(line, pos, hrefPos).append(relStr).append(expectedRel).append('"')
+                    .append(line, hrefPos, linkEnd + 1);
+              } else {
+                // Update
+                newLine.append(line, pos, relPos + relStr.length()).append(expectedRel).append(line, relClosePos, linkEnd + 1);
+              }
             } else {
               // Nothing to change
               newLine.append(line, pos, linkEnd + 1);
             }
-          } else if (!expectedRel.equals(relValue)) {
-            if (relValue == null) {
-              // Insert before href
-              newLine.append(line, pos, hrefPos).append(relStr).append(expectedRel).append('"')
-                  .append(line, hrefPos, linkEnd + 1);
-            } else {
-              // Update
-              newLine.append(line, pos, relPos + relStr.length()).append(expectedRel).append(line, relClosePos, linkEnd + 1);
-            }
-          } else {
-            // Nothing to change
-            newLine.append(line, pos, linkEnd + 1);
           }
           pos = linkEnd + 1;
         }
