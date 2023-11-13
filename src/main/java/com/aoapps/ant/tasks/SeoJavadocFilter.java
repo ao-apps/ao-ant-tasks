@@ -127,9 +127,12 @@ public final class SeoJavadocFilter {
   private static final String NOINDEX_NOFOLLOW = NOINDEX + ", " + NOFOLLOW;
 
   /**
-   * The required newline character.
+   * The required newline character(s).
    */
-  static final char NL = '\n';
+  static final String NL = System.lineSeparator();
+
+  private static final char LAST_NL_CHAR = NL.charAt(NL.length() - 1);
+  private static final boolean NL_HAS_CR = NL.indexOf('\r') != -1;
 
   static final String HEAD_ELEM_START = "<head>" + NL;
 
@@ -272,13 +275,13 @@ public final class SeoJavadocFilter {
       StringBuilder lineSb = new StringBuilder(80);
       int ch;
       while ((ch = in.read()) != -1) {
-        // Make sure only Unix newlines
-        if (ch == '\r') {
-          throw new ZipException("Carriage return in javadocs, requiring Unix newlines only: " + javadocJar + AT
+        // Make sure only POSIX newlines when on POSIX
+        if (ch == '\r' && !NL_HAS_CR) {
+          throw new ZipException("Carriage return in javadocs but not in NL, requiring POSIX newlines only: " + javadocJar + AT
               + zipEntry + AT_LINE + (linesWithEof.size() + 1));
         }
         lineSb.append((char) ch);
-        if (ch == NL) {
+        if (ch == LAST_NL_CHAR) {
           linesWithEof.add(lineSb.toString());
           lineSb.setLength(0);
         }

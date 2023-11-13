@@ -111,8 +111,8 @@ public final class InsertGoogleAnalyticsTracking {
           String actual = linesWithEof.get(verifyIndex);
           if (!actual.equals(expected)) {
             throw new ZipException("Unexpected existing line of Google Site Tag: " + file + AT + zipEntry
-                + " @ line " + (verifyIndex + 1) + ": expected \"" + expected.replace(String.valueOf(NL), "")
-                + "\", actual \"" + actual.replace(String.valueOf(NL), "") + '"');
+                + " @ line " + (verifyIndex + 1) + ": expected \"" + expected.replace(NL, "")
+                + "\", actual \"" + actual.replace(NL, "") + '"');
           }
         }
       }
