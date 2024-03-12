@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 ao-ant-tasks - Ant tasks used in building AO-supported projects.
-Copyright (C) 2023  AO Industries, Inc.
+Copyright (C) 2023, 2024  AO Industries, Inc.
     support@aoindustries.com
     7262 Bull Pen Cir
     Mobile, AL 36695
@@ -262,7 +262,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>1.25.0</version>
+        <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>1.26.1</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>2.15.1</version>
