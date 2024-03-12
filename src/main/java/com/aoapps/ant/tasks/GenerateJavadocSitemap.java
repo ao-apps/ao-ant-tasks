@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -176,8 +176,8 @@ public final class GenerateJavadocSitemap {
    * Generates the sitemap.
    */
   private static String generateSitemap(String apidocsUrlWithSlash, SortedSet<SitemapPath> sitemapPaths) {
-    String apidocsUrlWithSlashXmlEscaped = StringEscapeUtils.escapeXml10(apidocsUrlWithSlash);
-    DateFormat iso8601 = createIso8601Format();
+    final String apidocsUrlWithSlashXmlEscaped = StringEscapeUtils.escapeXml10(apidocsUrlWithSlash);
+    final DateFormat iso8601 = createIso8601Format();
     StringBuilder sitemap = new StringBuilder();
     sitemap.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").append(NL);
     sitemap.append("<!-- ").append(StringEscapeUtils.escapeXml10(GENERATED_COMMENT)).append(" -->").append(NL);
