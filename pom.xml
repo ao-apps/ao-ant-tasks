@@ -262,7 +262,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>1.27.0</version>
+        <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>1.27.1</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>2.16.1</version>
