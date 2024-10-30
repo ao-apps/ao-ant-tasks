@@ -69,10 +69,9 @@ import org.apache.commons.text.StringEscapeUtils;
  * <a href="https://semanticcms.com/core/sitemap/">SemanticCMS Core Sitemap</a> and merged into the site's
  * total sitemap index.  The timestamp of the added <code>sitemap.xml</code> and <code>META-INF/sitemap-index.xml</code>
  * will be based on the most recent modified time they contain.
- * <p>
- * This does not have any direct Ant dependencies.
- * If only using this class, it is permissible to exclude the ant dependencies.
- * </p>
+ *
+ * <p>This does not have any direct Ant dependencies.
+ * If only using this class, it is permissible to exclude the ant dependencies.</p>
  *
  * @author  AO Industries, Inc.
  */

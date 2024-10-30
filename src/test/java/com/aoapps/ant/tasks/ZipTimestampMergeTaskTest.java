@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -41,14 +41,13 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * Tests {@link ZipTimestampMergeTask}.
- * <p>
- * We are not doing any Ant-specific unit testing as documented at
+ *
+ * <p>We are not doing any Ant-specific unit testing as documented at
  * <a href="https://ant.apache.org/manual/tutorial-writing-tasks.html#TestingTasks">Test the Task</a>.
  * Ant (version 1.10.14 currently) is not JPMS enabled, and there are packages present in both ant.jar and
  * ant-test-util.jar.  Given that the Ant task is a thin wrapper around {@link ZipTimestampMerge}, which is thoroughly
  * tested, it is not worth the complexity of trying to work around this issue for marginally higher test coverage
- * statistics.
- * </p>
+ * statistics.</p>
  */
 public class ZipTimestampMergeTaskTest {
 

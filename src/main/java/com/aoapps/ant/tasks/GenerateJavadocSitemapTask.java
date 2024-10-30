@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -44,12 +44,10 @@ public class GenerateJavadocSitemapTask extends Task {
   /**
    * The current build directory.
    * Must exist and be a directory.
-   * <p>
-   * Each file ending with <code>"{@value SeoJavadocFilterTask#FILTER_SUFFIX}"</code> (case-insensitive) will be processed.
-   * </p>
-   * <p>
-   * Each file is a Javadoc JAR file to add sitemap to and must be a regular file.
-   * </p>
+   *
+   * <p>Each file ending with <code>"{@value SeoJavadocFilterTask#FILTER_SUFFIX}"</code> (case-insensitive) will be processed.</p>
+   *
+   * <p>Each file is a Javadoc JAR file to add sitemap to and must be a regular file.</p>
    */
   public void setBuildDirectory(String buildDirectory) {
     this.buildDirectory = new File(buildDirectory);

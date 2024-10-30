@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -34,10 +34,9 @@ import org.apache.tools.ant.types.LogLevel;
 
 /**
  * Ant task that invokes {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}.
- * <p>
- * Note: This task should be performed before {@link GenerateJavadocSitemapTask} in order to have correct timestamps
- * inside the generated sitemaps.
- * </p>
+ *
+ * <p>Note: This task should be performed before {@link GenerateJavadocSitemapTask} in order to have correct timestamps
+ * inside the generated sitemaps.</p>
  *
  * @author  AO Industries, Inc.
  */
@@ -69,21 +68,17 @@ public class ZipTimestampMergeTask extends Task {
   }
 
   /**
-   * <p>
    * When requiring the last successful build (the default), all AAR/JAR/WAR/ZIP files in
    * {@link #setBuildDirectory(java.lang.String) buildDirectory} must have a one-for-one corresponding file in
    * {@link #setLastBuildDirectory(java.lang.String) lastBuildDirectory}.
-   * </p>
-   * <p>
-   * Furthermore, the one-for-one mapping must be bi-directional: all AAR/JAR/WAR/ZIP files in
+   *
+   * <p>Furthermore, the one-for-one mapping must be bi-directional: all AAR/JAR/WAR/ZIP files in
    * {@link #setLastBuildDirectory(java.lang.String) lastBuildDirectory} must have a corresponding file in
-   * {@link #setBuildDirectory(java.lang.String) buildDirectory}.
-   * </p>
-   * <p>
-   * This is expected to be set to {@code false} for a first build only.  Subsequent builds should always have this at
+   * {@link #setBuildDirectory(java.lang.String) buildDirectory}.</p>
+   *
+   * <p>This is expected to be set to {@code false} for a first build only.  Subsequent builds should always have this at
    * the default {@code true}.  In there rare event the build removes or adds new artifacts, the build may need to be
-   * manually launched with {@code requireLastBuild = false}.
-   * </p>
+   * manually launched with {@code requireLastBuild = false}.</p>
    */
   public void setRequireLastBuild(boolean requireLastBuild) {
     this.requireLastBuild = requireLastBuild;

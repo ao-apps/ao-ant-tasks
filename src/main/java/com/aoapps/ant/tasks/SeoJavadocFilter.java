@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -58,10 +58,10 @@ import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * Filters javadocs for search engine optimization.  Performs the following transformations:
- * <p>
- * Note: This task should be performed before {@link ZipTimestampMerge} in order to have correct content to be able
- * to maintain timestamps.
- * </p>
+ *
+ * <p>Note: This task should be performed before {@link ZipTimestampMerge} in order to have correct content to be able
+ * to maintain timestamps.</p>
+ *
  * <ol>
  * <li>
  *   Adds <a href="https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls">Canonical URLs</a> to each page.
@@ -76,16 +76,13 @@ import org.apache.commons.text.StringEscapeUtils;
  *   This defaults to Java SE, Java EE, and Jakarta EE apidocs.
  * </li>
  * </ol>
- * <p>
- * All existing ZIP entry timestamps are preserved.
- * </p>
- * <p>
- * This does not have any direct Ant dependencies.
- * If only using this class, it is permissible to exclude the ant dependencies.
- * </p>
- * <p>
- * See <a href="https://github.com/marketplace/actions/javadoc-cleanup">javadoc-cleanup GitHub Action</a>.
- * </p>
+ *
+ * <p>All existing ZIP entry timestamps are preserved.</p>
+ *
+ * <p>This does not have any direct Ant dependencies.
+ * If only using this class, it is permissible to exclude the ant dependencies.</p>
+ *
+ * <p>See <a href="https://github.com/marketplace/actions/javadoc-cleanup">javadoc-cleanup GitHub Action</a>.</p>
  *
  * @author  AO Industries, Inc.
  */

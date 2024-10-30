@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -37,16 +37,14 @@ import org.apache.tools.ant.Task;
 /**
  * Creates a ZIP file with a set of directories up to and including the given path.  The timestamps for the directories
  * will be taken from the provided ZIP file and path.
- * <p>
- * It is proving difficult to be able to introduce new directory into a ZIP file at build time in a reproducible way.
+ *
+ * <p>It is proving difficult to be able to introduce new directory into a ZIP file at build time in a reproducible way.
  * If we set set <code>&lt;zip modificationtime="…"&gt;</code> we replace all meaningful timestamps.
  * If we do not set it, newly added directories have current time.
- * Cannot find any way with mappings, since directory-only mappings seem to be always ignored.
- * </p>
- * <p>
- * Use this task to create a small ZIP file containing only the needed new directories, then includes this new ZIP
- * file as an additional <code>&lt;zipfileset /&gt;</code>.
- * </p>
+ * Cannot find any way with mappings, since directory-only mappings seem to be always ignored.</p>
+ *
+ * <p>Use this task to create a small ZIP file containing only the needed new directories, then includes this new ZIP
+ * file as an additional <code>&lt;zipfileset /&gt;</code>.</p>
  *
  * @author  AO Industries, Inc.
  */

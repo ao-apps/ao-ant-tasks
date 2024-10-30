@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -53,10 +53,9 @@ import org.apache.commons.lang3.StringUtils;
  * <a href="https://support.google.com/analytics/answer/1008080?hl=en&amp;ref_topic=1008079#GA">Global Site Tag</a>
  * into the <code>&lt;head&gt;</code> of all {@link SeoJavadocFilter#FILTER_EXTENSION} files in ZIP files.
  * Must be used with HTML 5.
- * <p>
- * This does not have any direct Ant dependencies.
- * If only using this class, it is permissible to exclude the ant dependencies.
- * </p>
+ *
+ * <p>This does not have any direct Ant dependencies.
+ * If only using this class, it is permissible to exclude the ant dependencies.</p>
  *
  * @author  AO Industries, Inc.
  */

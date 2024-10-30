@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -48,10 +48,9 @@ Test with:
 */
 /**
  * Ant task that invokes {@link SeoJavadocFilter#filterJavadocJar(java.io.File, java.lang.String, java.lang.Iterable, java.lang.Iterable)}.
- * <p>
- * Note: This task should be performed before {@link ZipTimestampMergeTask} in order to have correct content to be able
- * to maintain timestamps.
- * </p>
+ *
+ * <p>Note: This task should be performed before {@link ZipTimestampMergeTask} in order to have correct content to be able
+ * to maintain timestamps.</p>
  *
  * @author  AO Industries, Inc.
  */
@@ -111,12 +110,10 @@ public class SeoJavadocFilterTask extends Task {
   /**
    * The current build directory.
    * Must exist and be a directory.
-   * <p>
-   * Each file ending with <code>"{@value #FILTER_SUFFIX}"</code> (case-insensitive) will be processed.
-   * </p>
-   * <p>
-   * Each file is a Javadoc JAR file to filter and must be a regular file.
-   * </p>
+   *
+   * <p>Each file ending with <code>"{@value #FILTER_SUFFIX}"</code> (case-insensitive) will be processed.</p>
+   *
+   * <p>Each file is a Javadoc JAR file to filter and must be a regular file.</p>
    */
   public void setBuildDirectory(String buildDirectory) {
     this.buildDirectory = new File(buildDirectory);
@@ -152,21 +149,17 @@ public class SeoJavadocFilterTask extends Task {
    * The comma/whitespace separated list of URL prefixes (case-insensitive) to set as
    * <code>rel="nofollow"</code>. May use {@link SeoJavadocFilter#ANY_URL} to match all.
    * Nofollow are matched before {@linkplain #setFollow(java.lang.String) follow}.
-   * <p>
-   * If starts with a slash {@code '/'}, will also set the prefix-matched Javadocs pages to robots "noindex, nofollow".
-   * </p>
-   * <p>
-   * If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
-   * for those who want to ensure every URL is considered.
-   * </p>
-   * <p>
-   * May use word "default" in list to add default entries in addition to your own.
+   *
+   * <p>If starts with a slash {@code '/'}, will also set the prefix-matched Javadocs pages to robots "noindex, nofollow".</p>
+   *
+   * <p>If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
+   * for those who want to ensure every URL is considered.</p>
+   *
+   * <p>May use word "default" in list to add default entries in addition to your own.
    * May use word "javase" to exclude Java SE.
-   * May use word "javaee" or "jakartaee" to exclude both Java EE and Jakarta EE.
-   * </p>
-   * <p>
-   * Defaults to exclude Java SE, Java EE, and Jakarta EE apidocs.
-   * </p>
+   * May use word "javaee" or "jakartaee" to exclude both Java EE and Jakarta EE.</p>
+   *
+   * <p>Defaults to exclude Java SE, Java EE, and Jakarta EE apidocs.</p>
    */
   public void setNofollow(String nofollow) {
     Set<String> nofollowPrefixes = new LinkedHashSet<>();
@@ -188,17 +181,14 @@ public class SeoJavadocFilterTask extends Task {
    * The comma/whitespace separated list of URL prefixes (case-insensitive) to <strong>not</strong> set as
    * <code>rel="nofollow"</code>. May use {@link SeoJavadocFilter#ANY_URL} to match all.
    * Follow are matched after {@linkplain #setNofollow(java.lang.String) nofollow}.
-   * <p>
-   * If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
-   * for those who want to ensure every URL is considered.
-   * </p>
-   * <p>
-   * May use word "javase" to include Java SE.
-   * May use word "javaee" or "jakartaee" to include both Java EE and Jakarta EE.
-   * </p>
-   * <p>
-   * Defaults to <code>"{@value SeoJavadocFilter#ANY_URL}"</code> (all).
-   * </p>
+   *
+   * <p>If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
+   * for those who want to ensure every URL is considered.</p>
+   *
+   * <p>May use word "javase" to include Java SE.
+   * May use word "javaee" or "jakartaee" to include both Java EE and Jakarta EE.</p>
+   *
+   * <p>Defaults to <code>"{@value SeoJavadocFilter#ANY_URL}"</code> (all).</p>
    */
   public void setFollow(String follow) {
     Set<String> followPrefixes = new LinkedHashSet<>();

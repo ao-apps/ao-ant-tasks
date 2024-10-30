@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -67,17 +67,14 @@ import org.apache.commons.io.IOUtils;
 
 /**
  * Standalone implementation of ZIP-file timestamp merging.
- * <p>
- * Note: This task should be performed before {@link GenerateJavadocSitemap} in order to have correct timestamps
- * inside the generated sitemaps.
- * </p>
- * <p>
- * This does not have any direct Ant dependencies.
- * If only using this class, it is permissible to exclude the ant dependencies.
- * </p>
- * <p>
- * See <a href="https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html">The structure of a PKZip file</a>.
- * </p>
+ *
+ * <p>Note: This task should be performed before {@link GenerateJavadocSitemap} in order to have correct timestamps
+ * inside the generated sitemaps.</p>
+ *
+ * <p>This does not have any direct Ant dependencies.
+ * If only using this class, it is permissible to exclude the ant dependencies.</p>
+ *
+ * <p>See <a href="https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html">The structure of a PKZip file</a>.</p>
  *
  * @author  AO Industries, Inc.
  */
@@ -619,9 +616,8 @@ public final class ZipTimestampMerge {
   /**
    * Creates a ZIP file with contents matching {@code buildArtifact} but with timestamps derived from
    * {@code lastBuildArtifact}.
-   * <p>
-   * For each entry, if the content is byte-for-byte equal, maintains the {@linkplain ZipArchiveEntry#getTime() time}.
-   * </p>
+   *
+   * <p>For each entry, if the content is byte-for-byte equal, maintains the {@linkplain ZipArchiveEntry#getTime() time}.</p>
    *
    * @param outputTimestamp   See {@link ZipTimestampMergeTask#setOutputTimestamp(java.lang.String)}
    * @param buildReproducible See {@link ZipTimestampMergeTask#setBuildReproducible(boolean)}
@@ -858,29 +854,25 @@ public final class ZipTimestampMerge {
   }
 
   /**
-   * <p>
    * Merges all {@code *.aar}, {@code *.jar}, {@code *.war}, and {@code *.zip} files between {@code lastBuildDirectory}
    * and {@code buildDirectory}.  Artifacts in {@code buildDirectory} are overwritten in-place only when altered.
-   * </p>
-   * <p>
-   * Identifies the one-to-one mappings by matching artifactId, classifier (optional), and type.  These are parsed from
-   * the filenames and make the following assumptions:
-   * </p>
+   *
+   * <p>Identifies the one-to-one mappings by matching artifactId, classifier (optional), and type.  These are parsed from
+   * the filenames and make the following assumptions:</p>
+   *
    * <ol>
    * <li>All fields are separated by hyphens {@code '-'}</li>
    * <li>Version number begins with {@code [0-9]}</li>
    * <li>Type is everything after the final period and contains only {@code [a-zA-Z]}</li>
    * <li>Classifier is before the final period and contains only {@code [a-z-]}</li>
    * </ol>
-   * <p>
-   * There must be only one possible mapping per unique {@code (artifactId, classifier, type)}.
+   *
+   * <p>There must be only one possible mapping per unique {@code (artifactId, classifier, type)}.
    * When {@code requireLastBuild = true}, there must be a one-to-one mapping in both directions between
-   * {@code lastBuildDirectory} and {@code buildDirectory}.  No file may be added or missing.
-   * </p>
-   * <p>
-   * Each mappings are resolved, calls {@link #mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)} for
-   * each pair of files.
-   * </p>
+   * {@code lastBuildDirectory} and {@code buildDirectory}.  No file may be added or missing.</p>
+   *
+   * <p>Each mappings are resolved, calls {@link #mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)} for
+   * each pair of files.</p>
    *
    * @param outputTimestamp    See {@link ZipTimestampMergeTask#setOutputTimestamp(java.lang.String)}
    * @param buildReproducible  See {@link ZipTimestampMergeTask#setBuildReproducible(boolean)}
