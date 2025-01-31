@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023, 2024  AO Industries, Inc.
+ * Copyright (C) 2023, 2024, 2025  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -443,7 +443,7 @@ public final class ZipTimestampMerge {
     // Track the specific patches to be performed.  Will remain empty when nothing to change.
     List<Patch> patches = new ArrayList<>();
     debug.accept(() -> "Reading buildArtifact: " + buildArtifact);
-    String reproducibleLogPrefix = buildReproducible ? "patch non-reproducible: " : "validate reproducible: ";
+    String reproducibleLogPrefix = buildReproducible ? "validate reproducible: " : "patch non-reproducible: ";
     int buildEntryCount = 0;
     try (ZipFile buildZipFile = new ZipFile(buildArtifact)) {
       debug.accept(() -> reproducibleLogPrefix + buildArtifact);
