@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023, 2024  AO Industries, Inc.
+ * Copyright (C) 2023, 2024, 2025  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -58,7 +58,6 @@ import org.apache.commons.compress.archivers.zip.GeneralPurposeBit;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -322,7 +321,7 @@ public final class GenerateJavadocSitemap {
     File tmpFile = File.createTempFile(javadocJar.getName() + "-", ".jar", javadocJar.getParentFile());
     Closeable deleteTmpFile = () -> {
       if (tmpFile.exists()) {
-        FileUtils.delete(tmpFile);
+        org.apache.commons.io.FileUtils.delete(tmpFile);
       }
     };
     try (deleteTmpFile) {
@@ -411,10 +410,8 @@ public final class GenerateJavadocSitemap {
             + totalEntriesFinal + " total " + (totalEntriesFinal == 1 ? "entry" : "entries"));
       }
       // Ovewrite if anything changed, delete otherwise
-      if (!FileUtils.contentEquals(javadocJar, tmpFile)) {
-        if (!tmpFile.renameTo(javadocJar)) {
-          throw new IOException("Rename failed: " + tmpFile + " to " + javadocJar);
-        }
+      if (!org.apache.commons.io.FileUtils.contentEquals(javadocJar, tmpFile)) {
+        FileUtils.renameAllowNonAtomic(tmpFile, javadocJar);
       } else {
         info.accept(() -> "Generate Javadoc Sitemap: No changes made"
             + (totalHtmlEntriesFinal == 0 ? "" : " (javadocs already processed?)"));

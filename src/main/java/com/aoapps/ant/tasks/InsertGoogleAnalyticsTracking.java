@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023, 2024  AO Industries, Inc.
+ * Copyright (C) 2023, 2024, 2025  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -45,7 +45,6 @@ import java.util.zip.ZipException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -151,7 +150,7 @@ public final class InsertGoogleAnalyticsTracking {
       File tmpFile = File.createTempFile(file.getName() + "-", ".zip", file.getParentFile());
       Closeable deleteTmpFile = () -> {
         if (tmpFile.exists()) {
-          FileUtils.delete(tmpFile);
+          org.apache.commons.io.FileUtils.delete(tmpFile);
         }
       };
       try (deleteTmpFile) {
@@ -212,10 +211,8 @@ public final class InsertGoogleAnalyticsTracking {
               + totalEntriesFinal + " total " + (totalEntriesFinal == 1 ? "entry" : "entries"));
         }
         // Ovewrite if anything changed, delete otherwise
-        if (!FileUtils.contentEquals(file, tmpFile)) {
-          if (!tmpFile.renameTo(file)) {
-            throw new IOException("Rename failed: " + tmpFile + " to " + file);
-          }
+        if (!org.apache.commons.io.FileUtils.contentEquals(file, tmpFile)) {
+          FileUtils.renameAllowNonAtomic(tmpFile, file);
         } else {
           info.accept(() -> "Insert Google Analytics Tracking: No changes made"
               + (totalHtmlEntriesFinal == 0 ? "" : " (javadocs already processed?)"));
