@@ -57,11 +57,11 @@ final class IoUtils {
    */
   // Note: Copied from ao-lang:IoUtils.java, but without using BufferManager
   private static long copy(InputStream in, OutputStream out, boolean flush) throws IOException {
-    final int BUFFER_SIZE = 4096;
-    byte[] buff = new byte[BUFFER_SIZE];
+    final int bufferSize = 4096;
+    byte[] buff = new byte[bufferSize];
     long totalBytes = 0;
     int numBytes;
-    while ((numBytes = in.read(buff, 0, BUFFER_SIZE)) != -1) {
+    while ((numBytes = in.read(buff, 0, bufferSize)) != -1) {
       out.write(buff, 0, numBytes);
       if (flush) {
         out.flush();
