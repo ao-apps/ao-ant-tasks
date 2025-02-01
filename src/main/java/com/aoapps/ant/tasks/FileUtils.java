@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.Date;
 
 /**
  * File utilities.
@@ -54,6 +55,16 @@ final class FileUtils {
   }
 
   /**
+   * Sets the last modified, throwing IOException when unsuccessful.
+   */
+  // Note: Copied from ao-lang:FileUtils.java
+  private static void setLastModified(File file, long time) throws IOException {
+    if (!file.setLastModified(time)) {
+      throw new IOException("Unable to set last modified of \"" + file + "\" to \"" + new Date(time) + '"');
+    }
+  }
+
+  /**
    * Copies one file over another, possibly creating if needed.
    *
    * @return  the number of bytes copied
@@ -64,7 +75,7 @@ final class FileUtils {
       long modified = from.lastModified();
       long bytes = copyToFile(in, to);
       if (modified != 0) {
-        to.setLastModified(modified);
+        setLastModified(to, modified);
       }
       return bytes;
     }
