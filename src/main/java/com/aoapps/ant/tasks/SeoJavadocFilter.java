@@ -170,7 +170,7 @@ public final class SeoJavadocFilter {
     for (String nofollowPrefix : nofollow) {
       if (
           !nofollowPrefix.isEmpty()
-          && nofollowPrefix.charAt(0) == '/'
+            && nofollowPrefix.charAt(0) == '/'
       ) {
         if (slashName == null) {
           slashName = '/' + name;
@@ -208,20 +208,20 @@ public final class SeoJavadocFilter {
         isPageNofollow(nofollow, name)
         // Packages
         || StringUtils.containsIgnoreCase(name, "/class-use/")
-        || StringUtils.endsWithIgnoreCase(name, "/package-tree.html")
-        || StringUtils.endsWithIgnoreCase(name, "/package-use.html")
-        // Directories
-        || StringUtils.startsWithIgnoreCase(name, "legal/")
-        || StringUtils.startsWithIgnoreCase(name, "src/")
-        // Top-level
-        || name.equalsIgnoreCase("allclasses-index.html")
-        || name.equalsIgnoreCase("allpackages-index.html")
-        || name.equalsIgnoreCase("deprecated-list.html")
-        || name.equalsIgnoreCase("help-doc.html")
-        || name.equalsIgnoreCase("index-all.html")
-        || name.equalsIgnoreCase("overview-tree.html")
-        || name.equalsIgnoreCase("search.html")
-        || name.equalsIgnoreCase("serialized-form.html")
+          || StringUtils.endsWithIgnoreCase(name, "/package-tree.html")
+          || StringUtils.endsWithIgnoreCase(name, "/package-use.html")
+          // Directories
+          || StringUtils.startsWithIgnoreCase(name, "legal/")
+          || StringUtils.startsWithIgnoreCase(name, "src/")
+          // Top-level
+          || name.equalsIgnoreCase("allclasses-index.html")
+          || name.equalsIgnoreCase("allpackages-index.html")
+          || name.equalsIgnoreCase("deprecated-list.html")
+          || name.equalsIgnoreCase("help-doc.html")
+          || name.equalsIgnoreCase("index-all.html")
+          || name.equalsIgnoreCase("overview-tree.html")
+          || name.equalsIgnoreCase("search.html")
+          || name.equalsIgnoreCase("serialized-form.html")
     ) {
       robotsHeaderValue = NOINDEX_NOFOLLOW;
     } else if (
