@@ -22,7 +22,7 @@ Ant tasks used in building AO-supported projects.
 * [Project Home](https://oss.aoapps.com/ant-tasks/)
 * [Changelog](https://oss.aoapps.com/ant-tasks/changelog)
 * [API Docs](https://oss.aoapps.com/ant-tasks/apidocs/)
-* [Maven Central Repository](https://central.sonatype.com/artifact/com.aoapps/ao-ant-tasks)
+* [Central Repository](https://central.sonatype.com/artifact/com.aoapps/ao-ant-tasks)
 * [GitHub](https://github.com/ao-apps/ao-ant-tasks)
 
 ## Features
