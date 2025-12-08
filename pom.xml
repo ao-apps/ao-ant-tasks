@@ -271,7 +271,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId><version>3.20.0</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId><version>1.14.0</version>
+        <groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId><version>1.15.0</version>
       </dependency>
       <dependency>
         <groupId>com.github.spotbugs</groupId><artifactId>spotbugs-annotations</artifactId><version>4.9.8</version>
