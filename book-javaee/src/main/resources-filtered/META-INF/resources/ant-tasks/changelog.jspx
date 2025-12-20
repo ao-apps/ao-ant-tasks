@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ao-ant-tasks - Ant tasks used in building AO-supported projects.
+Copyright (C) 2023, 2024, 2025  AO Industries, Inc.
+    support@aoindustries.com
+    7262 Bull Pen Cir
+    Mobile, AL 36695
+
+This file is part of ao-ant-tasks.
+
+ao-ant-tasks is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+ao-ant-tasks is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<jsp:root
+  xmlns:ao="https://oss.aoapps.com/taglib/"
+  xmlns:c="http://java.sun.com/jsp/jstl/core"
+  xmlns:changelog="https://semanticcms.com/changelog/taglib/"
+  xmlns:core="https://semanticcms.com/core/taglib/"
+  xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+  xmlns:jsp="http://java.sun.com/JSP/Page"
+  version="2.1"
+>
+  <jsp:directive.page language="java" pageEncoding="UTF-8" />
+  <jsp:directive.page session="false" />
+  <core:page
+    title="@{documented.name} Changelog"
+    shortTitle="Changelog"
+    tocLevels="1"
+    datePublished="2023-09-05T02:34:47Z"
+    dateModified="2025-07-02T23:05:45Z"
+  >
+    <c:set var="latestRelease" value="1.2.0" />
+    <c:if test="${
+      fn:endsWith('@{project.version}', '-SNAPSHOT')
+      and !fn:endsWith('@{project.version}', '-POST-SNAPSHOT')
+      and '@{project.version}' != (latestRelease.concat('-SNAPSHOT'))
+    }">
+      <changelog:release
+        projectName="@{documented.name}"
+        version="@{project.version}"
+        groupId="@{project.groupId}"
+        artifactId="@{documented.artifactId}"
+        scmUrl="@{project.scm.url}"
+      >
+        <ul>
+          <li>Allow non-atomic file renames, such as may occur in Windows.</li>
+        </ul>
+      </changelog:release>
+    </c:if>
+
+    <changelog:release
+      projectName="@{documented.name}"
+      version="1.2.0"
+      datePublished="2024-05-08T02:41:40Z"
+      groupId="@{project.groupId}"
+      artifactId="@{documented.artifactId}"
+      scmUrl="@{project.scm.url}"
+    >
+      <ul>
+        <li>
+          Added robots "noindex, nofollow" for Javadoc pages matching any <code>nofollow</code> starting with a slash
+          <code>'/'</code>.
+        </li>
+        <li>Support building in Windows.</li>
+      </ul>
+    </changelog:release>
+
+    <changelog:release
+      projectName="@{documented.name}"
+      version="1.1.1"
+      datePublished="2023-09-24T04:35:55Z"
+      groupId="@{project.groupId}"
+      artifactId="@{documented.artifactId}"
+      scmUrl="@{project.scm.url}"
+    >
+      <ul>
+        <li>
+          Removed incorrect direct declaration of a POM dependency.  Uses of the previous release may fail with:
+          <code>
+            Execution attach-javadocs of goal org.apache.maven.plugins:maven-javadoc-plugin:3.6.0:jar failed:
+            '…/javaee-web-api-bom-7.0.1.pom' not allowed on the path, only outputDirectories and jars are accepted
+          </code>
+        </li>
+      </ul>
+    </changelog:release>
+
+    <changelog:release
+      projectName="@{documented.name}"
+      version="1.1.0"
+      datePublished="2023-09-23T19:48:59Z"
+      groupId="@{project.groupId}"
+      artifactId="@{documented.artifactId}"
+      scmUrl="@{project.scm.url}"
+    >
+      <ul>
+        <li>Added more robots <code>noindex, nofollow</code> to javadocs, complete list is now:
+          <ol>
+            <li><code>*/class-use/*</code></li>
+            <li><code>*/package-tree.html</code></li>
+            <li><code>*/package-use.html</code></li>
+            <li><code>legal/*</code></li>
+            <li><code>src/*</code></li>
+            <li><code>allclasses-index.html</code></li>
+            <li><code>allpackages-index.html</code></li>
+            <li><code>deprecated-list.html</code></li>
+            <li><code>help-doc.html</code></li>
+            <li><code>index-all.html</code></li>
+            <li><code>overview-tree.html</code></li>
+            <li><code>search.html</code></li>
+            <li><code>serialized-form.html</code></li>
+          </ol>
+        </li>
+        <li>
+          New attribute <code>subprojectSubpath</code> that is the path to the sub-project.
+          This attribute should be set from the new Maven property <code>\${subproject.subpath}</code>.
+          This should be empty for the top-level project or the path (ending in slash) to append to <code>\${project.url}</code>.
+        </li>
+      </ul>
+    </changelog:release>
+
+    <changelog:release
+      projectName="@{documented.name}"
+      version="1.0.0"
+      datePublished="2023-09-17T08:08:48Z"
+      groupId="@{project.groupId}"
+      artifactId="@{documented.artifactId}"
+      scmUrl="@{project.scm.url}"
+    >
+      <ul>
+        <li>New Ant tasks used in building AO-supported projects.</li>
+      </ul>
+    </changelog:release>
+  </core:page>
+</jsp:root>
