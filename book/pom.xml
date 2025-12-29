@@ -37,6 +37,9 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     <module.name>com.aoapps.ant.tasks.book</module.name>
     <subproject.subpath>book/</subproject.subpath>
+    <!-- Java 17 -->
+    <javase.version>17</javase.version>
+    <javase.release>17</javase.release>
     <!-- These values are copied from the project being documented -->
     <documented.artifactId>ao-ant-tasks</documented.artifactId>
     <documented.name>AO Ant Tasks</documented.name>
