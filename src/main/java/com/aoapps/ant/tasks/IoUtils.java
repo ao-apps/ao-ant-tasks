@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2025  AO Industries, Inc.
+ * Copyright (C) 2025, 2026  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -38,7 +38,7 @@ final class IoUtils {
   }
 
   /**
-   * copies without flush.
+   * Copies without flush.
    *
    * @see #copy(java.io.InputStream, java.io.OutputStream, boolean)
    */
