@@ -63,7 +63,7 @@ public class SeoJavadocFilterTask extends Task {
   private static final String DEFAULT = "default";
 
   /**
-   * URL prefixes for {@link #JAVASE}.
+   * URL prefixes for {@link SeoJavadocFilterTask#JAVASE}.
    */
   // Note: These prefixes match ao-oss-parent:pom.xml -->
   private static final List<String> javaseUrlPrefixes = Arrays.asList(
@@ -73,7 +73,7 @@ public class SeoJavadocFilterTask extends Task {
   );
 
   /**
-   * URL prefixes for {@link #JAVAEE} or {@link #JAKARTAEE}.
+   * URL prefixes for {@link SeoJavadocFilterTask#JAVAEE} or {@link SeoJavadocFilterTask#JAKARTAEE}.
    */
   // Note: These prefixes match ao-oss-parent:pom.xml -->
   private static final List<String> javaeeUrlPrefixes = Arrays.asList(
@@ -84,7 +84,7 @@ public class SeoJavadocFilterTask extends Task {
   );
 
   /**
-   * Default nofollow for {@link #DEFAULT}.
+   * Default nofollow for {@link SeoJavadocFilterTask#DEFAULT}.
    */
   private static final List<String> defaultNofollow;
 
@@ -124,7 +124,7 @@ public class SeoJavadocFilterTask extends Task {
    * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}${subprojectSubpath}test/apidocs/"}.
    * Otherwise will be {@code "${projectUrl}${subprojectSubpath}apidocs/"}
    *
-   * @see #setSubprojectSubpath(java.lang.String)
+   * @see SeoJavadocFilterTask#setSubprojectSubpath(java.lang.String)
    */
   public void setProjectUrl(String projectUrl) {
     if (!projectUrl.endsWith("/")) {
@@ -136,7 +136,7 @@ public class SeoJavadocFilterTask extends Task {
   /**
    * The sub-project sub-path used in the url.
    *
-   * @see #setProjectUrl(java.lang.String)
+   * @see SeoJavadocFilterTask#setProjectUrl(java.lang.String)
    */
   public void setSubprojectSubpath(String subprojectSubpath) {
     if (!subprojectSubpath.isEmpty() && !subprojectSubpath.endsWith("/")) {
@@ -148,7 +148,7 @@ public class SeoJavadocFilterTask extends Task {
   /**
    * The comma/whitespace separated list of URL prefixes (case-insensitive) to set as
    * <code>rel="nofollow"</code>. May use {@link SeoJavadocFilter#ANY_URL} to match all.
-   * Nofollow are matched before {@linkplain #setFollow(java.lang.String) follow}.
+   * Nofollow are matched before {@linkplain SeoJavadocFilterTask#setFollow(java.lang.String) follow}.
    *
    * <p>If starts with a slash {@code '/'}, will also set the prefix-matched Javadocs pages to robots "noindex, nofollow".</p>
    *
@@ -180,7 +180,7 @@ public class SeoJavadocFilterTask extends Task {
   /**
    * The comma/whitespace separated list of URL prefixes (case-insensitive) to <strong>not</strong> set as
    * <code>rel="nofollow"</code>. May use {@link SeoJavadocFilter#ANY_URL} to match all.
-   * Follow are matched after {@linkplain #setNofollow(java.lang.String) nofollow}.
+   * Follow are matched after {@linkplain SeoJavadocFilterTask#setNofollow(java.lang.String) nofollow}.
    *
    * <p>If no match is found in either nofollow or follow, the filtering will throw an exception.  This can be useful
    * for those who want to ensure every URL is considered.</p>
@@ -216,8 +216,8 @@ public class SeoJavadocFilterTask extends Task {
 
   /**
    * Calls {@link SeoJavadocFilter#filterJavadocJar(java.io.File, java.lang.String, java.lang.Iterable, java.lang.Iterable)} for each
-   * file in {@link #setBuildDirectory(java.lang.String)} that matches {@link #javadocJarFilter}
-   * while logging to {@link #log(java.lang.String, int)}.
+   * file in {@link SeoJavadocFilterTask#setBuildDirectory(java.lang.String)} that matches {@link SeoJavadocFilterTask#javadocJarFilter}
+   * while logging to {@link SeoJavadocFilterTask#log(java.lang.String, int)}.
    */
   @Override
   public void execute() throws BuildException {

@@ -51,8 +51,8 @@ public class ZipTimestampMergeTask extends Task {
 
   /**
    * The output timestamp used for entries that are found to be updated.
-   * When {@link #setBuildReproducible(boolean) buildReproducible}, then value must match all the entries of the
-   * AAR/JAR/WAR/ZIP files contained in {@link #setBuildDirectory(java.lang.String) buildDirectory}.
+   * When {@link ZipTimestampMergeTask#setBuildReproducible(boolean) buildReproducible}, then value must match all the entries of the
+   * AAR/JAR/WAR/ZIP files contained in {@link ZipTimestampMergeTask#setBuildDirectory(java.lang.String) buildDirectory}.
    */
   public void setOutputTimestamp(String outputTimestamp) throws DateTimeException {
     this.outputTimestamp = Instant.parse(outputTimestamp);
@@ -60,8 +60,8 @@ public class ZipTimestampMergeTask extends Task {
 
   /**
    * When the build is reproducible (the default), all AAR/JAR/WAR/ZIP entries are verified to match
-   * {@link #setOutputTimestamp(java.lang.String) outputTimestamp}.  When not flagged as reproducible, all entries
-   * will be patched to be equal to {@link #setOutputTimestamp(java.lang.String) outputTimestamp}.
+   * {@link ZipTimestampMergeTask#setOutputTimestamp(java.lang.String) outputTimestamp}.  When not flagged as reproducible, all entries
+   * will be patched to be equal to {@link ZipTimestampMergeTask#setOutputTimestamp(java.lang.String) outputTimestamp}.
    */
   public void setBuildReproducible(boolean buildReproducible) {
     this.buildReproducible = buildReproducible;
@@ -69,12 +69,12 @@ public class ZipTimestampMergeTask extends Task {
 
   /**
    * When requiring the last successful build (the default), all AAR/JAR/WAR/ZIP files in
-   * {@link #setBuildDirectory(java.lang.String) buildDirectory} must have a one-for-one corresponding file in
-   * {@link #setLastBuildDirectory(java.lang.String) lastBuildDirectory}.
+   * {@link ZipTimestampMergeTask#setBuildDirectory(java.lang.String) buildDirectory} must have a one-for-one corresponding file in
+   * {@link ZipTimestampMergeTask#setLastBuildDirectory(java.lang.String) lastBuildDirectory}.
    *
    * <p>Furthermore, the one-for-one mapping must be bi-directional: all AAR/JAR/WAR/ZIP files in
-   * {@link #setLastBuildDirectory(java.lang.String) lastBuildDirectory} must have a corresponding file in
-   * {@link #setBuildDirectory(java.lang.String) buildDirectory}.</p>
+   * {@link ZipTimestampMergeTask#setLastBuildDirectory(java.lang.String) lastBuildDirectory} must have a corresponding file in
+   * {@link ZipTimestampMergeTask#setBuildDirectory(java.lang.String) buildDirectory}.</p>
    *
    * <p>This is expected to be set to {@code false} for a first build only.  Subsequent builds should always have this at
    * the default {@code true}.  In there rare event the build removes or adds new artifacts, the build may need to be
@@ -86,7 +86,7 @@ public class ZipTimestampMergeTask extends Task {
 
   /**
    * The directory that contains the artifacts of the last successful build.
-   * Must exist when {@link #setRequireLastBuild(boolean) requireLastBuild} and be a directory.
+   * Must exist when {@link ZipTimestampMergeTask#setRequireLastBuild(boolean) requireLastBuild} and be a directory.
    */
   public void setLastBuildDirectory(String lastBuildDirectory) {
     this.lastBuildDirectory = new File(lastBuildDirectory);
@@ -102,7 +102,7 @@ public class ZipTimestampMergeTask extends Task {
 
   /**
    * Calls {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}
-   * while logging to {@link #log(java.lang.String, int)}.
+   * while logging to {@link ZipTimestampMergeTask#log(java.lang.String, int)}.
    */
   @Override
   public void execute() throws BuildException {

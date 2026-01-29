@@ -419,7 +419,7 @@ public final class ZipTimestampMerge {
   }
 
   /**
-   * Implementation of {@link #mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)}
+   * Implementation of {@link ZipTimestampMerge#mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)}
    * with provided logging.
    */
   private static void mergeFile(
@@ -739,7 +739,7 @@ public final class ZipTimestampMerge {
   }
 
   /**
-   * Reads all the files in a directory matching {@link #FILTER}.
+   * Reads all the files in a directory matching {@link ZipTimestampMerge#FILTER}.
    */
   private static Map<Identifier, File> findArtifacts(String paramName, File directory, boolean requiredDirectory) throws IOException, ParseException {
     if (requiredDirectory) {
@@ -772,7 +772,7 @@ public final class ZipTimestampMerge {
   }
 
   /**
-   * Implementation of {@link #mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}
+   * Implementation of {@link ZipTimestampMerge#mergeDirectory(java.time.Instant, boolean, boolean, java.io.File, java.io.File)}
    * with provided logging.
    */
   static void mergeDirectory(
@@ -868,7 +868,7 @@ public final class ZipTimestampMerge {
    * When {@code requireLastBuild = true}, there must be a one-to-one mapping in both directions between
    * {@code lastBuildDirectory} and {@code buildDirectory}.  No file may be added or missing.</p>
    *
-   * <p>Each mappings are resolved, calls {@link #mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)} for
+   * <p>Each mappings are resolved, calls {@link ZipTimestampMerge#mergeFile(java.time.Instant, boolean, java.io.File, java.io.File)} for
    * each pair of files.</p>
    *
    * @param outputTimestamp    See {@link ZipTimestampMergeTask#setOutputTimestamp(java.lang.String)}

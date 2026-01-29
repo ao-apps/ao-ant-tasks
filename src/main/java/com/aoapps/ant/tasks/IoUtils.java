@@ -40,7 +40,7 @@ final class IoUtils {
   /**
    * Copies without flush.
    *
-   * @see #copy(java.io.InputStream, java.io.OutputStream, boolean)
+   * @see IoUtils#copy(java.io.InputStream, java.io.OutputStream, boolean)
    */
   // Note: Copied from ao-lang:IoUtils.java
   static long copy(InputStream in, OutputStream out) throws IOException {

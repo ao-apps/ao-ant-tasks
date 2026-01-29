@@ -60,7 +60,7 @@ public class InsertGoogleAnalyticsTrackingTask extends Task {
 
   /**
    * Calls {@link InsertGoogleAnalyticsTracking#addTrackingCodeToZip(java.io.File, java.lang.String)} with the given ZIP
-   * file while logging to {@link #log(java.lang.String, int)}.
+   * file while logging to {@link InsertGoogleAnalyticsTrackingTask#log(java.lang.String, int)}.
    */
   @Override
   public void execute() throws BuildException {

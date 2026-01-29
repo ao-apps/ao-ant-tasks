@@ -68,7 +68,7 @@ import org.apache.commons.text.StringEscapeUtils;
  * <li>
  *   Adds <a href="https://www.robotstxt.org/meta.html">{@code <meta name="robots" content="noindex, nofollow">}</a>
  *   to selective pages. See
- *   {@link #getRobotsHeader(java.io.File, org.apache.commons.compress.archivers.zip.ZipArchiveEntry, org.apache.commons.io.function.IOSupplier, java.util.Map, java.lang.Iterable)}.
+ *   {@link SeoJavadocFilter#getRobotsHeader(java.io.File, org.apache.commons.compress.archivers.zip.ZipArchiveEntry, org.apache.commons.io.function.IOSupplier, java.util.Map, java.lang.Iterable)}.
  * </li>
  * <li>
  *   rel="nofollow" is added to all links matching the configured nofollow and follow prefixes.
@@ -558,7 +558,7 @@ public final class SeoJavadocFilter {
   }
 
   /**
-   * Implementation of {@link #filterJavadocJar(java.io.File)}
+   * Implementation of {@link SeoJavadocFilter#filterJavadocJar(java.io.File)}
    * with provided logging.
    */
   static void filterJavadocJar(

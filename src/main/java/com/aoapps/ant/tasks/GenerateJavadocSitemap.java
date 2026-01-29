@@ -292,7 +292,7 @@ public final class GenerateJavadocSitemap {
   }
 
   /**
-   * Implementation of {@link #addSitemapToJavadocJar(java.io.File)}
+   * Implementation of {@link GenerateJavadocSitemap#addSitemapToJavadocJar(java.io.File)}
    * with provided logging.
    */
   static void addSitemapToJavadocJar(

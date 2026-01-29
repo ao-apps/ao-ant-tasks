@@ -122,7 +122,7 @@ public final class InsertGoogleAnalyticsTracking {
   }
 
   /**
-   * Implementation of {@link #addTrackingCodeToZip(java.io.File)}
+   * Implementation of {@link InsertGoogleAnalyticsTracking#addTrackingCodeToZip(java.io.File)}
    * with provided logging.
    */
   static void addTrackingCodeToZip(

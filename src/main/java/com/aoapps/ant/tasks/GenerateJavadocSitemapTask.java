@@ -58,7 +58,7 @@ public class GenerateJavadocSitemapTask extends Task {
    * Ending in {@code "*-test-javadoc.jar"} will be {@code "${projectUrl}${subprojectSubpath}test/apidocs/"}.
    * Otherwise will be {@code "${projectUrl}${subprojectSubpath}apidocs/"}
    *
-   * @see #setSubprojectSubpath(java.lang.String)
+   * @see GenerateJavadocSitemapTask#setSubprojectSubpath(java.lang.String)
    */
   public void setProjectUrl(String projectUrl) {
     if (!projectUrl.endsWith("/")) {
@@ -70,7 +70,7 @@ public class GenerateJavadocSitemapTask extends Task {
   /**
    * The sub-project sub-path used in the url.
    *
-   * @see #setProjectUrl(java.lang.String)
+   * @see GenerateJavadocSitemapTask#setProjectUrl(java.lang.String)
    */
   public void setSubprojectSubpath(String subprojectSubpath) {
     if (!subprojectSubpath.isEmpty() && !subprojectSubpath.endsWith("/")) {
@@ -81,8 +81,8 @@ public class GenerateJavadocSitemapTask extends Task {
 
   /**
    * Calls {@link GenerateJavadocSitemap#addSitemapToJavadocJar(java.io.File, java.lang.String)} for each
-   * file in {@link #setBuildDirectory(java.lang.String)} that matches {@link SeoJavadocFilterTask#javadocJarFilter}
-   * while logging to {@link #log(java.lang.String, int)}.
+   * file in {@link GenerateJavadocSitemapTask#setBuildDirectory(java.lang.String)} that matches {@link SeoJavadocFilterTask#javadocJarFilter}
+   * while logging to {@link GenerateJavadocSitemapTask#log(java.lang.String, int)}.
    */
   @Override
   public void execute() throws BuildException {
