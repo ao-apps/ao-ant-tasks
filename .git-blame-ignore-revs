@@ -10,3 +10,6 @@
 
 # checkstyle-10.24.0 compatibility
 4386bc56cfeeecd81938b8f48cc8aabc24f022cb
+
+# Workaround javadoc reproducibility limitations/bugs
+5ee68449f8165a25a1544a56d81162b61374cbba
