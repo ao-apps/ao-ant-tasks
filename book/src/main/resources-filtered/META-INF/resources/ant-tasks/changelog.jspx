@@ -37,9 +37,9 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
     shortTitle="Changelog"
     tocLevels="1"
     datePublished="2023-09-05T02:34:47Z"
-    dateModified="2025-07-02T23:05:45Z"
+    dateModified="2026-01-30T08:47:38Z"
   >
-    <c:set var="latestRelease" value="1.2.0" />
+    <c:set var="latestRelease" value="1.2.1" />
     <c:if test="${
       fn:endsWith('@{project.version}', '-SNAPSHOT')
       and !fn:endsWith('@{project.version}', '-POST-SNAPSHOT')
@@ -51,12 +51,21 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
         groupId="@{project.groupId}"
         artifactId="@{documented.artifactId}"
         scmUrl="@{project.scm.url}"
-      >
-        <ul>
-          <li>Allow non-atomic file renames, such as may occur in Windows.</li>
-        </ul>
-      </changelog:release>
+      />
     </c:if>
+
+    <changelog:release
+      projectName="@{documented.name}"
+      version="1.2.1"
+      datePublished="2026-01-30T08:47:38Z"
+      groupId="@{project.groupId}"
+      artifactId="@{documented.artifactId}"
+      scmUrl="@{project.scm.url}"
+    >
+      <ul>
+        <li>Allow non-atomic file renames, such as may occur in Windows.</li>
+      </ul>
+    </changelog:release>
 
     <changelog:release
       projectName="@{documented.name}"
