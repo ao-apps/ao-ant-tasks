@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023, 2024, 2025  AO Industries, Inc.
+ * Copyright (C) 2023, 2024, 2025, 2026  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -435,9 +435,9 @@ public final class ZipTimestampMerge {
     info.accept(() -> "Merging timestamps from " + lastBuildArtifact + " into " + buildArtifact);
     // Validate
     Objects.requireNonNull(outputTimestamp, "outputTimestamp required");
-    long outputTimestampMillis = outputTimestamp.toEpochMilli();
-    long outputTimestampRounded = roundDownDosTime(outputTimestampMillis);
-    long currentTimeRounded = roundDownDosTime(currentTime);
+    final long outputTimestampMillis = outputTimestamp.toEpochMilli();
+    final long outputTimestampRounded = roundDownDosTime(outputTimestampMillis);
+    final long currentTimeRounded = roundDownDosTime(currentTime);
     // Track the specific patches to be performed.  Will remain empty when nothing to change.
     List<Patch> patches = new ArrayList<>();
     debug.accept(() -> "Reading buildArtifact: " + buildArtifact);
