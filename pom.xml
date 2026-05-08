@@ -279,7 +279,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
       </dependency>
       <!-- Transitive -->
       <dependency>
-        <groupId>commons-codec</groupId><artifactId>commons-codec</artifactId><version>1.21.0</version>
+        <groupId>commons-codec</groupId><artifactId>commons-codec</artifactId><version>1.22.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId><artifactId>jsr305</artifactId><version>3.0.2</version>
