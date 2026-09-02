@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023, 2024  AO Industries, Inc.
+ * Copyright (C) 2023, 2024, 2026  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -38,14 +38,14 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.LogLevel;
 
 /*
-Test with:
-
-(
-  cd ~/maven2/ao/oss/ant-tasks &&
-  MAVEN_OPTS="-Djansi.force=true" mvn -Dpgpverify.skip -Pjenkins clean test &&
-  MAVEN_OPTS="-Djansi.force=true" mvn -Dpgpverify.skip -Pjenkins,jenkins-deploy,nexus -DrequireLastBuild=false install
-) 2>&1 | less -SR
-*/
+ * Test with:
+ *
+ * (
+ *   cd ~/maven2/ao/oss/ant-tasks &&
+ *   MAVEN_OPTS="-Djansi.force=true" mvn -Dpgpverify.skip -Pjenkins clean test &&
+ *   MAVEN_OPTS="-Djansi.force=true" mvn -Dpgpverify.skip -Pjenkins,jenkins-deploy,nexus -DrequireLastBuild=false install
+ * ) 2>&1 | less -SR
+ */
 /**
  * Ant task that invokes {@link SeoJavadocFilter#filterJavadocJar(java.io.File, java.lang.String, java.lang.Iterable, java.lang.Iterable)}.
  *
