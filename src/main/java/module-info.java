@@ -1,6 +1,6 @@
 /*
  * ao-ant-tasks - Ant tasks used in building AO-supported projects.
- * Copyright (C) 2023  AO Industries, Inc.
+ * Copyright (C) 2023, 2026  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -21,7 +21,6 @@
  * along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
  */
 module com.aoapps.ant.tasks {
-  exports com.aoapps.ant.tasks;
   // Direct
   requires ant; // <groupId>org.apache.ant</groupId><artifactId>ant</artifactId>
   requires org.apache.commons.compress; // <groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId>
@@ -31,4 +30,6 @@ module com.aoapps.ant.tasks {
   requires static com.github.spotbugs.annotations; // <groupId>com.github.spotbugs</groupId><artifactId>spotbugs-annotations</artifactId>
   // Java SE
   requires java.logging;
+
+  exports com.aoapps.ant.tasks;
 }
