@@ -236,6 +236,7 @@ along with ao-ant-tasks.  If not, see <https://www.gnu.org/licenses/>.
                   ant-1.10.18.jar
                 -->
                 <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                <Include-Resource>{maven-resources}</Include-Resource>
                 <Private-Package>!.</Private-Package>
               </instructions>
             </configuration>
